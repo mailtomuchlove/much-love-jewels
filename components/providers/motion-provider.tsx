@@ -13,7 +13,7 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Expose instance for programmatic scroll (nav anchors, cart scroll lock, etc.)
-    (window as Record<string, unknown>).__lenis = lenis;
+    (window as unknown as Record<string, unknown>).__lenis = lenis;
 
     let rafId: number;
     function raf(time: number) {
