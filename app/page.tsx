@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ShieldCheck, Truck, Sparkles, PackageCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { getHeroBanners } from "@/app/actions/hero-banners";
 import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
@@ -30,6 +31,8 @@ const trustBadges = [
 
 export default async function HomePage() {
   const supabase = await createClient();
+
+  const heroBanners = await getHeroBanners().catch(() => []);
 
   const [categoriesRes, featuredRes, reviewsRes] = await Promise.all([
     supabase
@@ -63,7 +66,7 @@ export default async function HomePage() {
       <Header />
       <main className="flex-1">
         {/* Hero */}
-        <HeroBanner />
+        <HeroBanner slides={heroBanners} />
 
         {/* Trust badges */}
         <section className="border-b border-brand-border bg-white">

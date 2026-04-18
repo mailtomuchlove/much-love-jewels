@@ -93,6 +93,8 @@ type WishlistItem = {
 
 interface AccountClientProps {
   profile: Profile;
+  email: string;
+  initialTab?: Tab;
   orders: OrderItem[];
   addresses: Address[];
   wishlistItems: WishlistItem[];
@@ -121,11 +123,13 @@ const EMPTY_ADDR = {
 
 export function AccountClient({
   profile,
+  email,
+  initialTab = "profile",
   orders,
   addresses: initialAddresses,
   wishlistItems: initialWishlist,
 }: AccountClientProps) {
-  const [tab, setTab] = useState<Tab>("profile");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [addresses, setAddresses] = useState(initialAddresses);
   const [wishlist, setWishlist] = useState(initialWishlist);
 
@@ -293,7 +297,7 @@ export function AccountClient({
               <div>
                 <Label className="text-xs font-medium text-gray-400">Email (cannot change)</Label>
                 <Input
-                  value={profile.id}
+                  value={email}
                   disabled
                   className="mt-1 h-10 bg-gray-50 text-gray-400 text-xs"
                 />

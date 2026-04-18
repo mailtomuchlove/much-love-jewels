@@ -7,9 +7,16 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "My Account" };
 
-export default async function AccountPage() {
+interface PageProps {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function AccountPage({ searchParams }: PageProps) {
   const profile = await requireAuth();
   const supabase = await createClient();
+  const { tab } = await searchParams;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userEmail = user?.email ?? "";
 
   const [orders, addresses, wishlistRows] = await Promise.all([
     getUserOrders(),
@@ -36,6 +43,8 @@ export default async function AccountPage() {
       <h1 className="heading-h1 mb-8">My Account</h1>
       <AccountClient
         profile={profile}
+        email={userEmail}
+        initialTab={(tab as "profile" | "orders" | "addresses" | "wishlist") ?? "profile"}
         orders={orders}
         addresses={addresses}
         wishlistItems={wishlistItems}

@@ -12,31 +12,35 @@ function isVideoUrl(url: string) {
   return /\.(mp4|webm|mov|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
 }
 
-/**
- * HOW TO ADD HERO BANNER MEDIA (image or video)
- * ──────────────────────────────────────────────
- * 1. Upload your banner image to Cloudinary:
- *    Go to Cloudinary Dashboard → Media Library → Upload
- *    Recommended size: 1400×580 px, JPG/WebP, under 500 KB
- *
- * 2. Copy the image URL from Cloudinary (looks like):
- *    https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v123456/banner1.jpg
- *
- * 3. Paste it into the `imageSrc` field for the matching slide below.
- *
- * 4. Adjust `overlayOpacity` per slide (0–100) to keep text readable
- *    over your image. Lighter images → higher opacity (e.g. 70).
- *    Darker images → lower opacity (e.g. 40).
- *
- * Leave `imageSrc: null` to keep the plain gradient fallback.
- */
-const slides = [
+type Slide = {
+  id: string | number;
+  headline: string;
+  subline: string;
+  ctaLabel: string;
+  ctaHref: string;
+  imageSrc: string | null;
+  overlayOpacity: number;
+};
+
+type DbSlide = {
+  id: string;
+  headline: string;
+  subline: string;
+  cta_label: string;
+  cta_href: string;
+  image_src: string | null;
+  overlay_opacity: number;
+  is_active?: boolean;
+  sort_order?: number;
+};
+
+const FALLBACK_SLIDES: Slide[] = [
   {
     id: 1,
     headline: "Bridal Sets That\nSteal the Show",
     subline: "Stunning AD & imitation bridal jewellery — from necklace sets to maang tikkas, crafted for your big day.",
-    cta: "Shop Bridal",
-    ctaHref: "/collections/bridal",
+    ctaLabel: "Shop Bridal",
+    ctaHref: "/collections",
     overlayOpacity: 60,
     imageSrc: "https://res.cloudinary.com/dycznhzeg/image/upload/q_auto/f_auto/v1776432626/samples/ecommerce/analog-classic.jpg",
   },
@@ -44,23 +48,33 @@ const slides = [
     id: 2,
     headline: "Sparkling AD\nJewellery",
     subline: "American Diamond jewellery that looks like real — bold, beautiful, and budget-friendly. Free shipping across India.",
-    cta: "Explore AD Sets",
-    ctaHref: "/collections/ad-jewellery",
+    ctaLabel: "Explore AD Sets",
+    ctaHref: "/collections",
     overlayOpacity: 55,
-    // imageSrc: null as string | null,
     imageSrc: "https://res.cloudinary.com/dycznhzeg/video/upload/q_auto/f_auto/v1776432632/samples/sea-turtle.mp4",
   },
   {
     id: 3,
     headline: "Gift Someone\nSpecial",
     subline: "Premium imitation jewellery gift sets with personalised notes. Perfect for weddings, festivals & celebrations.",
-    cta: "Gift Now",
+    ctaLabel: "Gift Now",
     ctaHref: "/collections",
     overlayOpacity: 60,
-    // imageSrc: null as string | null,
     imageSrc: "https://res.cloudinary.com/dycznhzeg/image/upload/q_auto/f_auto/v1776432632/samples/landscapes/landscape-panorama.jpg",
   },
 ];
+
+function normalizeSlides(db: DbSlide[]): Slide[] {
+  return db.map((s) => ({
+    id: s.id,
+    headline: s.headline,
+    subline: s.subline,
+    ctaLabel: s.cta_label,
+    ctaHref: s.cta_href,
+    imageSrc: s.image_src,
+    overlayOpacity: s.overlay_opacity,
+  }));
+}
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -74,7 +88,8 @@ const contentVariants = {
   exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
 };
 
-export function HeroBanner() {
+export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
+  const slides = dbSlides && dbSlides.length > 0 ? normalizeSlides(dbSlides) : FALLBACK_SLIDES;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const goTo = useCallback((index: number) => {
@@ -83,18 +98,18 @@ export function HeroBanner() {
 
   const goNext = useCallback(() => {
     setActiveIndex((i) => (i + 1) % slides.length);
-  }, []);
+  }, [slides.length]);
 
   const goPrev = useCallback(() => {
     setActiveIndex((i) => (i - 1 + slides.length) % slides.length);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     const interval = setInterval(goNext, 5000);
     return () => clearInterval(interval);
   }, [goNext]);
 
-  const slide = slides[activeIndex];
+  const slide = slides[Math.min(activeIndex, slides.length - 1)];
 
   return (
     <section
@@ -157,7 +172,7 @@ export function HeroBanner() {
         }}
       />
 
-      {/* Content — each element gets key={activeIndex} so Framer re-animates on slide change */}
+      {/* Content — keyed by activeIndex so Framer re-animates on slide change */}
       <div className="container-site relative z-10 flex h-full items-center">
         <div className="max-w-[480px] py-10">
           <AnimatePresence mode="wait">
@@ -181,7 +196,7 @@ export function HeroBanner() {
                 className="font-poppins text-white font-bold leading-tight mb-4"
                 style={{ fontSize: "clamp(1.75rem, 4vw, 2.75rem)" }}
               >
-                {slide.headline.split("\n").map((line, i) => (
+                {slide.headline.split("\n").map((line: string, i: number) => (
                   <span key={i}>
                     {line}
                     {i === 0 && <br />}
@@ -210,7 +225,7 @@ export function HeroBanner() {
                   href={slide.ctaHref}
                   className={cn(buttonVariants({ size: "lg" }), "bg-brand-gold hover:bg-brand-gold-muted text-white font-medium px-6 h-11")}
                 >
-                  {slide.cta}
+                  {slide.ctaLabel}
                 </Link>
                 <Link
                   href="/collections"
@@ -242,7 +257,7 @@ export function HeroBanner() {
 
       {/* Dot indicators */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-        {slides.map((_, i) => (
+        {slides.map((_: Slide, i: number) => (
           <button
             key={i}
             onClick={() => goTo(i)}
