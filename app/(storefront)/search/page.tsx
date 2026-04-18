@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { SearchBar } from "@/components/storefront/search-bar";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<{ q?: string }>;
 }
@@ -25,7 +27,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   let count = 0;
   let searched = false;
 
-  if (query.length >= 2) {
+  if (query.length >= 1) {
     searched = true;
     const supabase = await createClient();
 

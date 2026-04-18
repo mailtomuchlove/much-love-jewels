@@ -44,6 +44,8 @@ export function uploadToCloudinary(
         resource_type: "auto",           // auto-detects image vs video
         transformation: [
           { width: 3000, height: 3000, crop: "limit" },
+          { effect: "auto_enhance" },
+          { quality: "auto", fetch_format: "auto" },
         ],
         ...options,
       },

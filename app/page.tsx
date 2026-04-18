@@ -32,9 +32,8 @@ const trustBadges = [
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const heroBanners = await getHeroBanners().catch(() => []);
-
-  const [categoriesRes, featuredRes, reviewsRes] = await Promise.all([
+  const [heroBanners, categoriesRes, featuredRes, reviewsRes] = await Promise.all([
+    getHeroBanners().catch(() => []),
     supabase
       .from("categories")
       .select("id, name, slug, image_url")

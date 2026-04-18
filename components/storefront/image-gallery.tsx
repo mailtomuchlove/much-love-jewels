@@ -63,6 +63,8 @@ export function ImageGallery({
             gravity="center"
             format="auto"
             quality="auto"
+            effects={[{ sharpen: "60" }]}
+            sizes="(max-width: 768px) 100vw, 600px"
             className={cn(
               "object-cover w-full h-full transition-transform duration-200",
               isZoomed && "scale-150"

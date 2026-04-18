@@ -60,10 +60,25 @@ export default async function ProductPage({ params }: PageProps) {
       "*, categories(id, name, slug), product_variants(*), reviews(id, rating, is_approved, comment, created_at, profiles(name))"
     )
     .eq("slug", slug)
-    .eq("is_active", true)
     .single();
 
   if (!product) notFound();
+
+  if (!product.is_active) {
+    return (
+      <div className="container-site py-24 text-center">
+        <h1 className="font-poppins text-2xl font-bold text-brand-navy mb-3">
+          {product.name}
+        </h1>
+        <p className="text-brand-text-muted mb-6">
+          This product is currently unavailable. Check back soon!
+        </p>
+        <a href="/collections" className="text-brand-navy font-medium hover:text-brand-gold transition-colors">
+          Browse our collection →
+        </a>
+      </div>
+    );
+  }
 
   const category = product.categories as { id: string; name: string; slug: string } | null;
   const variants = product.product_variants ?? [];
