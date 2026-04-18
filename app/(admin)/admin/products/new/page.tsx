@@ -16,7 +16,7 @@ export default async function NewProductPage() {
     .order("name");
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <Link
           href="/admin/products"

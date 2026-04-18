@@ -25,7 +25,31 @@ type ImageEntry = { secure_url: string; public_id: string; resource_type?: strin
 
 interface ProductFormProps {
   categories: Pick<Category, "id" | "name">[];
-  product?: Product; // if present, we're editing
+  product?: Product;
+}
+
+function Card({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100 bg-gray-50">
+        <h3 className="font-poppins text-sm font-semibold text-gray-800">{title}</h3>
+        {badge && <span className="ml-auto text-xs text-gray-400 font-normal">{badge}</span>}
+      </div>
+      <div className="p-5 space-y-4">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label className="text-xs font-medium text-gray-700">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </Label>
+      {hint && <p className="text-[11px] text-gray-400 mt-0.5 mb-1">{hint}</p>}
+      <div className="mt-1">{children}</div>
+    </div>
+  );
 }
 
 export function ProductForm({ categories, product }: ProductFormProps) {
@@ -72,10 +96,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       return;
     }
 
-    // Client-side validation before hitting the server
     const validation = productSchema.safeParse({
       name: form.name,
-      slug: form.name, // slug is generated server-side; pass name as placeholder
+      slug: form.name,
       price: parseFloat(form.price) || 0,
       compare_price: form.compare_price ? parseFloat(form.compare_price) : null,
       category_id: form.category_id,
@@ -129,226 +152,199 @@ export function ProductForm({ categories, product }: ProductFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Images */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800 mb-4">
-          Product Images / Videos <span className="text-red-500">*</span>
-        </h3>
-        <ImageUpload
-          value={images}
-          onChange={setImages}
-          acceptVideo
-          uploadContext={{
-            categoryName: categories.find((c) => c.id === form.category_id)?.name,
-            productName: form.name || undefined,
-          }}
-        />
-      </div>
+    <form onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      {/* Basic info */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800">Basic Information</h3>
+        {/* ── Left column ── */}
+        <div className="lg:col-span-7 space-y-5">
 
-        <div>
-          <Label className="text-xs font-medium">
-            Product Name <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            required
-            value={form.name}
-            onChange={(e) => setField("name", e.target.value)}
-            placeholder="e.g. AD Bridal Necklace Set"
-            className="mt-1 h-10"
-          />
+          {/* Images */}
+          <Card title="Product Images / Videos">
+            <ImageUpload
+              value={images}
+              onChange={setImages}
+              acceptVideo
+              uploadContext={{
+                categoryName: categories.find((c) => c.id === form.category_id)?.name,
+                productName: form.name || undefined,
+              }}
+            />
+          </Card>
+
+          {/* Basic info */}
+          <Card title="Basic Information">
+            <Field label="Product Name" required>
+              <Input
+                required
+                value={form.name}
+                onChange={(e) => setField("name", e.target.value)}
+                placeholder="e.g. AD Bridal Necklace Set"
+                className="h-10"
+              />
+            </Field>
+
+            <Field label="Description">
+              <textarea
+                value={form.description}
+                onChange={(e) => setField("description", e.target.value)}
+                placeholder="Product description…"
+                rows={5}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </Field>
+
+            <Field label="Category" required>
+              <Select
+                value={form.category_id}
+                onValueChange={(v) => v && setField("category_id", v)}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </Card>
         </div>
 
-        <div>
-          <Label className="text-xs font-medium">Description</Label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setField("description", e.target.value)}
-            placeholder="Product description…"
-            rows={4}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
+        {/* ── Right column ── */}
+        <div className="lg:col-span-5 space-y-5">
 
-        <div>
-          <Label className="text-xs font-medium">
-            Category <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            required
-            value={form.category_id}
-            onValueChange={(v) => v && setField("category_id", v)}
-          >
-            <SelectTrigger className="mt-1 h-10">
-              <SelectValue placeholder="Select a category">
-                {(v: string | null) =>
-                  v ? (categories.find((c) => c.id === v)?.name ?? "Select a category") : null
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Pricing & Stock */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800">Pricing & Stock</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs font-medium">
-              Price (₹) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              required
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.price}
-              onChange={(e) => setField("price", e.target.value)}
-              placeholder="499.00"
-              className="mt-1 h-10"
-            />
-          </div>
-          <div>
-            <Label className="text-xs font-medium">
-              Compare Price (₹) <span className="text-gray-400">(optional, for discount)</span>
-            </Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.compare_price}
-              onChange={(e) => setField("compare_price", e.target.value)}
-              placeholder="699.00"
-              className="mt-1 h-10"
-            />
-          </div>
-          <div>
-            <Label className="text-xs font-medium">
-              Stock <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              required
-              type="number"
-              min="0"
-              value={form.stock}
-              onChange={(e) => setField("stock", e.target.value)}
-              className="mt-1 h-10"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Details */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800">Product Details</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs font-medium">Material</Label>
-            <Input
-              value={form.material}
-              onChange={(e) => setField("material", e.target.value)}
-              placeholder="e.g. AD Stone, Kundan, Oxidised"
-              className="mt-1 h-10"
-            />
-          </div>
-          <div>
-            <Label className="text-xs font-medium">Weight (grams)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.weight_grams}
-              onChange={(e) => setField("weight_grams", e.target.value)}
-              placeholder="5.50"
-              className="mt-1 h-10"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Visibility */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800">Visibility</h3>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Active</p>
-              <p className="text-xs text-gray-400">Visible to customers on the storefront</p>
+          {/* Pricing & Stock */}
+          <Card title="Pricing & Stock">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Price (₹)" required>
+                <Input
+                  required
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(e) => setField("price", e.target.value)}
+                  placeholder="499.00"
+                  className="h-10"
+                />
+              </Field>
+              <Field label="Compare Price (₹)" hint="For showing discount">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.compare_price}
+                  onChange={(e) => setField("compare_price", e.target.value)}
+                  placeholder="699.00"
+                  className="h-10"
+                />
+              </Field>
             </div>
-            <Switch
-              checked={form.is_active}
-              onCheckedChange={(v) => setField("is_active", v)}
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Featured</p>
-              <p className="text-xs text-gray-400">Show on homepage featured section</p>
+            <Field label="Stock" required>
+              <Input
+                required
+                type="number"
+                min="0"
+                value={form.stock}
+                onChange={(e) => setField("stock", e.target.value)}
+                className="h-10"
+              />
+            </Field>
+          </Card>
+
+          {/* Product Details */}
+          <Card title="Product Details">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Material">
+                <Input
+                  value={form.material}
+                  onChange={(e) => setField("material", e.target.value)}
+                  placeholder="e.g. AD Stone, Kundan"
+                  className="h-10"
+                />
+              </Field>
+              <Field label="Weight (grams)">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.weight_grams}
+                  onChange={(e) => setField("weight_grams", e.target.value)}
+                  placeholder="5.50"
+                  className="h-10"
+                />
+              </Field>
             </div>
-            <Switch
-              checked={form.is_featured}
-              onCheckedChange={(v) => setField("is_featured", v)}
-            />
+          </Card>
+
+          {/* Visibility */}
+          <Card title="Visibility">
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Active</p>
+                <p className="text-xs text-gray-400 mt-0.5">Visible on storefront</p>
+              </div>
+              <Switch
+                checked={form.is_active}
+                onCheckedChange={(v) => setField("is_active", v)}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Featured</p>
+                <p className="text-xs text-gray-400 mt-0.5">Show on homepage</p>
+              </div>
+              <Switch
+                checked={form.is_featured}
+                onCheckedChange={(v) => setField("is_featured", v)}
+              />
+            </div>
+          </Card>
+
+          {/* SEO */}
+          <Card title="SEO" badge="optional">
+            <Field label="Meta Title">
+              <Input
+                value={form.meta_title}
+                onChange={(e) => setField("meta_title", e.target.value)}
+                placeholder="Override page title for search engines"
+                className="h-10"
+              />
+            </Field>
+            <Field label="Meta Description">
+              <textarea
+                value={form.meta_description}
+                onChange={(e) => setField("meta_description", e.target.value)}
+                placeholder="Short description for search results (under 160 chars)"
+                rows={3}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </Field>
+          </Card>
+
+          {/* Submit */}
+          <div className="flex items-center gap-3 pt-1 pb-4">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="flex-1 bg-brand-navy hover:bg-brand-navy-light text-white h-11 font-medium"
+            >
+              {saving ? "Saving…" : product ? "Update Product" : "Create Product"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              className="h-11 px-6"
+            >
+              Cancel
+            </Button>
           </div>
         </div>
-      </div>
-
-      {/* SEO */}
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800">
-          SEO <span className="text-xs font-normal text-gray-400">(optional)</span>
-        </h3>
-        <div>
-          <Label className="text-xs font-medium">Meta Title</Label>
-          <Input
-            value={form.meta_title}
-            onChange={(e) => setField("meta_title", e.target.value)}
-            placeholder="Override page title for search engines"
-            className="mt-1 h-10"
-          />
-        </div>
-        <div>
-          <Label className="text-xs font-medium">Meta Description</Label>
-          <textarea
-            value={form.meta_description}
-            onChange={(e) => setField("meta_description", e.target.value)}
-            placeholder="Short description for search results (under 160 chars)"
-            rows={2}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
-      </div>
-
-      {/* Submit */}
-      <div className="flex items-center gap-3 pb-4">
-        <Button
-          type="submit"
-          disabled={saving}
-          className="bg-brand-navy hover:bg-brand-navy-light text-white h-11 px-8"
-        >
-          {saving ? "Saving…" : product ? "Update Product" : "Create Product"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          className="h-11 px-6"
-        >
-          Cancel
-        </Button>
       </div>
     </form>
   );
