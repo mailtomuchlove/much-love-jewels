@@ -26,7 +26,7 @@ export async function createAddress(
   const profile = await requireAuth();
   const parsed = addressSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message };
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   const supabase = await createClient();
@@ -59,7 +59,7 @@ export async function updateAddress(
   const profile = await requireAuth();
   const parsed = addressSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message };
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   const supabase = await createClient();

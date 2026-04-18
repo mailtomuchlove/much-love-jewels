@@ -25,8 +25,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { createCategory, updateCategory, deleteCategory } from "@/app/actions/categories";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Tag } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { isAllowedImageUrl } from "@/lib/image-utils";
 
 type CategoryRow = {
   id: string;
@@ -77,7 +78,16 @@ export function CategoriesClient({
     setDialogOpen(true);
   }
 
+  const imageUrlError =
+    form.image_url && !isAllowedImageUrl(form.image_url)
+      ? "Image must be uploaded to Cloudinary (res.cloudinary.com). Paste a Cloudinary URL or leave blank."
+      : null;
+
   async function handleSave() {
+    if (imageUrlError) {
+      toast.error(imageUrlError);
+      return;
+    }
     setSaving(true);
     const data = {
       name: form.name,
@@ -154,8 +164,17 @@ export function CategoriesClient({
                   value={form.image_url}
                   onChange={(e) => setForm((p) => ({ ...p, image_url: e.target.value }))}
                   placeholder="https://res.cloudinary.com/…"
-                  className="mt-1 h-10"
+                  className={`mt-1 h-10 ${imageUrlError ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                 />
+                {imageUrlError && (
+                  <p className="mt-1.5 flex items-start gap-1.5 text-xs text-red-600">
+                    <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                    {imageUrlError}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-400">
+                  Upload the image via Cloudinary first, then paste the URL here.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -181,7 +200,7 @@ export function CategoriesClient({
               </div>
               <Button
                 onClick={handleSave}
-                disabled={saving || !form.name}
+                disabled={saving || !form.name || !!imageUrlError}
                 className="w-full bg-brand-navy hover:bg-brand-navy-light text-white h-10"
               >
                 {saving ? "Saving…" : editing ? "Update" : "Create"}

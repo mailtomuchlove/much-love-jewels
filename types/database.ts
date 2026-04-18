@@ -32,6 +32,7 @@ export interface Database {
           role?: "customer" | "admin";
           updated_at?: string;
         };
+        Relationships: [];
       };
       categories: {
         Row: {
@@ -62,6 +63,7 @@ export interface Database {
           is_active?: boolean;
           sort_order?: number;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -69,8 +71,8 @@ export interface Database {
           name: string;
           slug: string;
           description: string | null;
-          price: number; // paise
-          compare_price: number | null; // paise
+          price: number;
+          compare_price: number | null;
           images: string[];
           image_public_ids: string[];
           category_id: string;
@@ -120,6 +122,15 @@ export interface Database {
           meta_description?: string | null;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       product_variants: {
         Row: {
@@ -128,7 +139,7 @@ export interface Database {
           label: string;
           size: string | null;
           material: string | null;
-          price_adjustment: number; // paise
+          price_adjustment: number;
           stock: number;
           sku: string | null;
           created_at: string;
@@ -151,6 +162,15 @@ export interface Database {
           stock?: number;
           sku?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       cart_items: {
         Row: {
@@ -173,6 +193,29 @@ export interface Database {
           quantity?: number;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cart_items_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cart_items_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       wishlist: {
         Row: {
@@ -186,7 +229,23 @@ export interface Database {
           user_id: string;
           product_id: string;
         };
-        Update: never;
+        Update: Record<string, never>;
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wishlist_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       addresses: {
         Row: {
@@ -226,6 +285,15 @@ export interface Database {
           is_default?: boolean;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "addresses_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       orders: {
         Row: {
@@ -272,6 +340,15 @@ export interface Database {
           payment_id?: string | null;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       order_items: {
         Row: {
@@ -295,7 +372,23 @@ export interface Database {
           quantity: number;
           price_paise: number;
         };
-        Update: never;
+        Update: Record<string, never>;
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       reviews: {
         Row: {
@@ -319,7 +412,26 @@ export interface Database {
           is_approved?: boolean;
           comment?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
+    };
+    Views: {
+      [_ in never]: never;
     };
     Functions: {
       is_admin: {
@@ -330,6 +442,25 @@ export interface Database {
         Args: { p_product_id: string; p_quantity: number };
         Returns: void;
       };
+      upsert_cart_item_with_variant: {
+        Args: {
+          p_user_id: string;
+          p_product_id: string;
+          p_variant_id: string;
+          p_quantity: number;
+        };
+        Returns: void;
+      };
+      get_dashboard_stats: {
+        Args: Record<never, never>;
+        Returns: { total_revenue: number; total_orders: number; pending_count: number };
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }

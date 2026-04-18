@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ShoppingBag, Heart, User, Search, Menu } from "lucide-react";
+import { Heart, User, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "./mobile-menu";
 import { CartButton } from "./cart-button";
+import { SearchBar } from "./search-bar";
+import { HeaderScrollWrapper } from "./header-scroll-wrapper";
 
 const navLinks = [
   { label: "Collections", href: "/collections" },
@@ -31,9 +33,15 @@ export async function Header() {
   const cartCount = await getCartCount(user?.id);
 
   return (
+    <HeaderScrollWrapper>
     <header className="sticky top-0 z-40 border-b border-brand-border bg-white">
       <div className="container-site">
         <div className="flex h-[60px] items-center justify-between md:h-[72px]">
+          {/* Mobile menu trigger — visible only on mobile, sits before logo */}
+          <div className="md:hidden">
+            <MobileMenu navLinks={navLinks} />
+          </div>
+
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <span className="font-poppins text-lg font-bold text-brand-navy md:text-xl">
@@ -55,13 +63,18 @@ export async function Header() {
             ))}
           </nav>
 
+          {/* Desktop search bar — sits between nav and icons */}
+          <div className="hidden sm:flex flex-1 max-w-[200px] md:max-w-[240px] lg:max-w-[300px] mx-3">
+            <SearchBar className="w-full" />
+          </div>
+
           {/* Right icons */}
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Search */}
+          <div className="flex items-center gap-1 md:gap-2">
+            {/* Mobile search icon — navigates to /search page */}
             <Link
               href="/search"
               aria-label="Search"
-              className="hidden sm:flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+              className="sm:hidden h-9 w-9 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
             >
               <Search className="h-5 w-5" />
             </Link>
@@ -86,12 +99,10 @@ export async function Header() {
 
             {/* Cart (Client Component — controls drawer) */}
             <CartButton serverCount={cartCount} />
-
-            {/* Mobile menu */}
-            <MobileMenu navLinks={navLinks} />
           </div>
         </div>
       </div>
     </header>
+    </HeaderScrollWrapper>
   );
 }

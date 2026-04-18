@@ -42,14 +42,18 @@ export const INDIAN_STATES = [
 ];
 
 export const MATERIALS = [
-  "Gold",
-  "Silver",
-  "Platinum",
-  "Diamond",
-  "Rose Gold",
-  "White Gold",
-  "Brass",
-  "Copper",
+  "AD (American Diamond)",
+  "Kundan",
+  "Polki",
+  "Meenakari",
+  "Oxidised",
+  "Gold Plated",
+  "Silver Plated",
+  "Antique",
+  "Pearl",
+  "Beaded",
+  "Thread",
+  "Terracotta",
 ];
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

@@ -14,7 +14,18 @@ export async function POST(request: NextRequest) {
     .update(rawBody)
     .digest("hex");
 
-  if (expectedSignature !== signature) {
+  // Timing-safe comparison prevents signature oracle attacks
+  let signatureValid = false;
+  try {
+    signatureValid = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, "hex"),
+      Buffer.from(signature, "hex")
+    );
+  } catch {
+    // Buffer lengths differ — forged or malformed signature
+  }
+
+  if (!signatureValid) {
     console.error("[webhook] Invalid signature");
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
@@ -39,8 +50,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Handle payment failure — mark order as failed so it doesn't sit as pending forever
+  if (payload.event === "payment.failed") {
+    const failedRazorpayOrderId = payload.payload.payment.entity.order_id;
+    if (failedRazorpayOrderId) {
+      await createServiceClient()
+        .from("orders")
+        .update({ payment_status: "failed", status: "cancelled" })
+        .eq("razorpay_order_id", failedRazorpayOrderId)
+        .eq("payment_status", "pending");
+      console.log("[webhook] Payment failed, order cancelled:", failedRazorpayOrderId);
+    }
+    return NextResponse.json({ received: true });
+  }
+
   if (payload.event !== "payment.captured") {
-    // Not an event we handle — acknowledge and move on
+    // Event type we don't handle — acknowledge and move on
     return NextResponse.json({ received: true });
   }
 
@@ -66,8 +91,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true, note: "already_processed" });
   }
 
-  // 7. Mark order as paid (guard: only if still pending)
-  const { error: updateError } = await supabase
+  // 7. Mark order as paid — only if still pending (atomic guard against duplicate processing)
+  // Using .select() so we know whether this call actually owned the update.
+  // If verifyPayment already processed this, the update matches 0 rows → data is null.
+  const { data: updatedOrder, error: updateError } = await supabase
     .from("orders")
     .update({
       payment_status: "paid",
@@ -75,29 +102,33 @@ export async function POST(request: NextRequest) {
       payment_id: paymentId,
     })
     .eq("id", order.id)
-    .eq("payment_status", "pending");
+    .eq("payment_status", "pending")
+    .select("id")
+    .maybeSingle();
 
   if (updateError) {
     console.error("[webhook] Failed to update order:", updateError.message);
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  // 8. Decrement stock for each order item
-  const { data: orderItems } = await supabase
-    .from("order_items")
-    .select("product_id, quantity")
-    .eq("order_id", order.id);
+  // 8. Decrement stock only if this call owned the update — prevents double decrement with verifyPayment
+  if (updatedOrder) {
+    const { data: orderItems } = await supabase
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", order.id);
 
-  if (orderItems) {
-    for (const item of orderItems) {
-      try {
-        await supabase.rpc("decrement_stock", {
-          p_product_id: item.product_id,
-          p_quantity: item.quantity,
-        });
-      } catch (err) {
-        // Log but do not fail — payment already captured
-        console.error("[webhook] Stock decrement failed:", item.product_id, err);
+    if (orderItems) {
+      for (const item of orderItems) {
+        try {
+          await supabase.rpc("decrement_stock", {
+            p_product_id: item.product_id,
+            p_quantity: item.quantity,
+          });
+        } catch (err) {
+          // Log but do not fail — payment already captured
+          console.error("[webhook] Stock decrement failed:", item.product_id, err);
+        }
       }
     }
   }

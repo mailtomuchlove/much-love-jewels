@@ -11,27 +11,24 @@ export default async function AccountPage() {
   const profile = await requireAuth();
   const supabase = await createClient();
 
-  const [orders, addresses, wishlistResult] = await Promise.all([
+  const [orders, addresses, wishlistRows] = await Promise.all([
     getUserOrders(),
     getAddresses(),
-    supabase
-      .from("wishlist")
-      .select("product_id, products(id, name, slug, price, compare_price, images, image_public_ids, stock)")
-      .eq("user_id", profile.id),
+    supabase.from("wishlist").select("product_id").eq("user_id", profile.id),
   ]);
 
-  const wishlistItems = (wishlistResult.data ?? []).map((w) => ({
-    product_id: w.product_id,
-    product: w.products as {
-      id: string;
-      name: string;
-      slug: string;
-      price: number;
-      compare_price: number | null;
-      images: string[];
-      image_public_ids: string[];
-      stock: number;
-    } | null,
+  // Fetch product details separately to avoid fragile PostgREST FK joins
+  const wishlistProductIds = (wishlistRows.data ?? []).map((w) => w.product_id);
+  const { data: wishlistProducts } = wishlistProductIds.length
+    ? await supabase
+        .from("products")
+        .select("id, name, slug, price, compare_price, images, image_public_ids, stock")
+        .in("id", wishlistProductIds)
+    : { data: [] };
+
+  const wishlistItems = wishlistProductIds.map((pid) => ({
+    product_id: pid,
+    product: (wishlistProducts ?? []).find((p) => p.id === pid) ?? null,
   }));
 
   return (

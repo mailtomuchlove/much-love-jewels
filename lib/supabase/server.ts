@@ -29,6 +29,15 @@ export async function createClient() {
   );
 }
 
+// Anon client without cookies — safe to use in generateStaticParams (build time)
+export function createStaticClient() {
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+
 // Service role client — bypasses RLS (webhook, admin ops only)
 export function createServiceClient() {
   return createSupabaseClient<Database>(

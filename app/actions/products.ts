@@ -4,7 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { rupeesToPaise, generateSlug } from "@/lib/utils";
-import type { ActionResult } from "@/types";
+import { isAllowedImageUrl } from "@/lib/image-utils";
+import type { ActionResult, Database } from "@/types";
+
+function validateImageUrls(urls: string[]): string | null {
+  const bad = urls.filter((u) => !isAllowedImageUrl(u));
+  if (bad.length)
+    return `Invalid image URL(s) — must be from Cloudinary: ${bad.join(", ")}`;
+  return null;
+}
 
 type ProductFormData = {
   name: string;
@@ -27,8 +35,11 @@ export async function createProduct(
   data: ProductFormData
 ): Promise<ActionResult<{ id: string; slug: string }>> {
   await requireAdmin();
-  const supabase = await createClient();
 
+  const imgErr = validateImageUrls(data.images);
+  if (imgErr) return { success: false, error: imgErr };
+
+  const supabase = await createClient();
   const slug = generateSlug(data.name);
 
   // Check slug uniqueness
@@ -76,6 +87,12 @@ export async function updateProduct(
   data: Partial<ProductFormData>
 ): Promise<ActionResult<void>> {
   await requireAdmin();
+
+  if (data.images) {
+    const imgErr = validateImageUrls(data.images);
+    if (imgErr) return { success: false, error: imgErr };
+  }
+
   const supabase = await createClient();
 
   const updateData: Record<string, unknown> = {};
@@ -97,7 +114,7 @@ export async function updateProduct(
 
   const { error } = await supabase
     .from("products")
-    .update(updateData)
+    .update(updateData as Database["public"]["Tables"]["products"]["Update"])
     .eq("id", productId);
 
   if (error) return { success: false, error: error.message };
@@ -120,10 +137,26 @@ export async function deleteProduct(productId: string): Promise<ActionResult<voi
   await requireAdmin();
   const supabase = await createClient();
 
+  // Fetch image public IDs before deletion so we can clean up Cloudinary
+  const { data: product } = await supabase
+    .from("products")
+    .select("image_public_ids, slug")
+    .eq("id", productId)
+    .single();
+
   const { error } = await supabase.from("products").delete().eq("id", productId);
   if (error) return { success: false, error: error.message };
 
+  // Clean up Cloudinary images after DB row is gone
+  if (product?.image_public_ids?.length) {
+    const { deleteFromCloudinary } = await import("@/lib/cloudinary");
+    await Promise.allSettled(
+      product.image_public_ids.map((id: string) => deleteFromCloudinary(id))
+    );
+  }
+
   revalidatePath("/admin/products");
+  if (product?.slug) revalidatePath(`/products/${product.slug}`);
   revalidatePath("/");
   return { success: true, data: undefined };
 }

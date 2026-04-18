@@ -20,5 +20,14 @@ export function verifyRazorpaySignature(
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
     .update(body)
     .digest("hex");
-  return expectedSignature === signature;
+  // Timing-safe comparison prevents signature oracle attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, "hex"),
+      Buffer.from(signature, "hex")
+    );
+  } catch {
+    // Buffer lengths differ — invalid signature format
+    return false;
+  }
 }

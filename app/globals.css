@@ -6,56 +6,67 @@
 
 /* ─── Brand Design Tokens ─────────────────────────────────── */
 @theme inline {
-  /* Brand Colors */
-  --color-brand-navy:        #00192F;
-  --color-brand-navy-light:  #002847;
-  --color-brand-navy-muted:  #0A3554;
-  --color-brand-gold:        #C9A84C;
-  --color-brand-gold-light:  #E8C97A;
-  --color-brand-gold-muted:  #B8923C;
-  --color-brand-cream:       #FAF7F2;
-  --color-brand-cream-dark:  #F3EDE3;
-  --color-brand-text:        #111111;
-  --color-brand-text-muted:  #6B7280;
-  --color-brand-text-light:  #9CA3AF;
-  --color-brand-border:      #E5E7EB;
-  --color-brand-border-dark: #D1D5DB;
+  /* ── Primary palette — deep espresso brown (warm, not cold navy) */
+  --color-brand-navy:        #2C1A0E;   /* deep espresso */
+  --color-brand-navy-light:  #3E2614;   /* lighter espresso */
+  --color-brand-navy-muted:  #5A3A22;   /* medium warm brown */
 
-  /* Shadcn semantic tokens (mapped to brand) */
+  /* ── Accent — warm champagne / rose gold (not harsh bright gold) */
+  --color-brand-gold:        #C4956A;   /* champagne rose gold */
+  --color-brand-gold-light:  #DBBF9E;   /* blush gold */
+  --color-brand-gold-muted:  #A87A52;   /* deep antique gold */
+
+  /* ── Backgrounds — warm ivory, not stark white */
+  --color-brand-cream:       #FBF8F3;   /* warm ivory */
+  --color-brand-cream-dark:  #F4EDE1;   /* deeper ivory */
+
+  /* ── Text */
+  --color-brand-text:        #1C1208;   /* warm near-black */
+  --color-brand-text-muted:  #7A6652;   /* warm taupe */
+  --color-brand-text-light:  #A89B8A;   /* light warm gray */
+
+  /* ── Borders */
+  --color-brand-border:      #EAE0D5;   /* warm off-white */
+  --color-brand-border-dark: #D4C4B0;   /* warm medium border */
+
+  /* ── Shadcn semantic tokens */
   --color-background:              #FFFFFF;
-  --color-foreground:              #111111;
+  --color-foreground:              #1C1208;
   --color-card:                    #FFFFFF;
-  --color-card-foreground:         #111111;
+  --color-card-foreground:         #1C1208;
   --color-popover:                 #FFFFFF;
-  --color-popover-foreground:      #111111;
-  --color-primary:                 #00192F;
+  --color-popover-foreground:      #1C1208;
+  --color-primary:                 #2C1A0E;
   --color-primary-foreground:      #FFFFFF;
-  --color-secondary:               #FAF7F2;
-  --color-secondary-foreground:    #00192F;
-  --color-muted:                   #FAF7F2;
-  --color-muted-foreground:        #6B7280;
-  --color-accent:                  #F3EDE3;
-  --color-accent-foreground:       #00192F;
-  --color-destructive:             #DC2626;
-  --color-border:                  #E5E7EB;
-  --color-input:                   #E5E7EB;
-  --color-ring:                    #C9A84C;
+  --color-secondary:               #FBF8F3;
+  --color-secondary-foreground:    #2C1A0E;
+  --color-muted:                   #FBF8F3;
+  --color-muted-foreground:        #7A6652;
+  --color-accent:                  #F4EDE1;
+  --color-accent-foreground:       #2C1A0E;
+  --color-destructive:             #C0392B;
+  --color-border:                  #EAE0D5;
+  --color-input:                   #EAE0D5;
+  --color-ring:                    #C4956A;
 
-  /* Typography */
-  --font-sans:    var(--font-inter);
-  --font-heading: var(--font-poppins);
+  /* ── Typography */
+  --font-sans:    var(--font-jost);        /* Jost — elegant geometric sans */
+  --font-heading: var(--font-cormorant);   /* Cormorant Garamond — serif display */
 
-  /* Border Radius */
-  --radius:    0.625rem;   /* 10px — shadcn default */
-  --radius-sm: 0.375rem;   /* 6px */
-  --radius-md: 0.625rem;   /* 10px */
-  --radius-lg: 1rem;       /* 16px */
-  --radius-xl: 1.25rem;    /* 20px */
+  /* --font-poppins kept as alias so existing font-poppins classes still work */
+  --font-poppins: var(--font-jost);
 
-  /* Shadows */
-  --shadow-card:       0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-  --shadow-card-hover: 0 4px 16px 0 rgb(0 0 0 / 0.10), 0 2px 4px -1px rgb(0 0 0 / 0.06);
-  --shadow-modal:      0 10px 40px 0 rgb(0 0 0 / 0.14), 0 4px 12px -2px rgb(0 0 0 / 0.08);
+  /* ── Border Radius — slightly tighter for a more refined look */
+  --radius:    0.5rem;    /* 8px */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+
+  /* ── Shadows — warmer tinted */
+  --shadow-card:       0 1px 4px 0 rgb(44 26 14 / 0.07), 0 1px 2px -1px rgb(44 26 14 / 0.04);
+  --shadow-card-hover: 0 6px 20px 0 rgb(44 26 14 / 0.11), 0 2px 6px -1px rgb(44 26 14 / 0.06);
+  --shadow-modal:      0 12px 48px 0 rgb(44 26 14 / 0.16), 0 4px 14px -2px rgb(44 26 14 / 0.09);
   --shadow-sm: var(--shadow-card);
   --shadow-md: var(--shadow-card-hover);
   --shadow-lg: var(--shadow-modal);
@@ -72,24 +83,33 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
+    /* scroll-behavior handled by Lenis */
     @apply h-full;
   }
 
+  /* Lenis smooth scroll compat */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+
   body {
     @apply bg-background text-foreground font-sans min-h-full;
-    line-height: 1.6;
+    line-height: 1.65;
   }
 
+  /* Headings use the serif display font */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-poppins), var(--font-sans), sans-serif;
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
+    font-family: var(--font-heading), var(--font-sans), serif;
+    font-weight: 500;        /* serifs look best at lighter weights */
+    line-height: 1.15;
+    letter-spacing: 0.01em; /* slight open tracking — suits serif display */
     color: var(--color-brand-navy);
   }
 
-  /* Custom scrollbar */
+  /* Anchor color */
+  a { color: inherit; }
+
+  /* Custom scrollbar — warm toned */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--color-brand-cream); }
   ::-webkit-scrollbar-thumb {
@@ -106,69 +126,101 @@
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
   .section {
-    @apply py-10 md:py-16;
+    @apply py-12 md:py-20;
   }
   .section-sm {
-    @apply py-6 md:py-10;
+    @apply py-7 md:py-12;
   }
 
-  /* Typography */
+  /* ── Headings — serif display font */
   .heading-display {
-    font-family: var(--font-poppins), sans-serif;
-    @apply text-4xl font-bold tracking-tight text-brand-navy lg:text-5xl;
+    font-family: var(--font-heading), serif;
+    @apply text-5xl font-medium text-brand-navy lg:text-6xl;
+    letter-spacing: 0.01em;
   }
   .heading-h1 {
-    font-family: var(--font-poppins), sans-serif;
-    @apply text-3xl font-bold tracking-tight text-brand-navy md:text-4xl;
+    font-family: var(--font-heading), serif;
+    @apply text-4xl font-medium text-brand-navy md:text-5xl;
+    letter-spacing: 0.01em;
   }
   .heading-h2 {
-    font-family: var(--font-poppins), sans-serif;
-    @apply text-2xl font-semibold tracking-tight text-brand-navy md:text-3xl;
+    font-family: var(--font-heading), serif;
+    @apply text-3xl font-medium text-brand-navy md:text-4xl;
+    letter-spacing: 0.01em;
   }
   .heading-h3 {
-    font-family: var(--font-poppins), sans-serif;
-    @apply text-xl font-semibold text-brand-navy md:text-2xl;
+    font-family: var(--font-heading), serif;
+    @apply text-2xl font-medium text-brand-navy md:text-3xl;
+    letter-spacing: 0.01em;
   }
   .heading-h4 {
-    font-family: var(--font-poppins), sans-serif;
-    @apply text-lg font-semibold text-brand-navy;
+    font-family: var(--font-heading), serif;
+    @apply text-xl font-medium text-brand-navy;
+    letter-spacing: 0.01em;
   }
-  .body-lg   { @apply text-base leading-relaxed text-gray-700 md:text-lg; }
-  .body-text { @apply text-sm leading-relaxed text-gray-700 md:text-base; }
-  .caption   { @apply text-xs leading-normal text-gray-500 md:text-sm; }
 
-  /* Gold divider accent */
+  .body-lg   { @apply text-base leading-relaxed text-brand-text-muted md:text-lg; }
+  .body-text { @apply text-sm leading-relaxed text-brand-text-muted md:text-base; }
+  .caption   { @apply text-xs leading-normal text-brand-text-light md:text-sm; }
+
+  /* ── Gold divider accent — thinner, more delicate */
   .divider-gold {
-    @apply h-0.5 w-12 bg-brand-gold rounded-full;
+    @apply h-px w-10 bg-brand-gold rounded-full;
   }
 
-  /* Card pattern */
+  /* ── Card pattern */
   .card-luxury {
-    @apply bg-white rounded-md overflow-hidden
-           transition-all duration-200;
+    @apply bg-white rounded-md overflow-hidden transition-all duration-300;
     box-shadow: var(--shadow-card);
   }
   .card-luxury:hover {
     box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
   }
 
-  /* Gold accent badge */
+  /* ── Badges */
   .badge-gold {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full
-           bg-brand-gold text-white text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-sm
+           bg-brand-gold/10 text-brand-gold-muted text-xs font-medium
+           border border-brand-gold/20 tracking-wide uppercase;
   }
   .badge-stock-low {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm
            bg-red-50 text-red-600 text-xs font-medium;
   }
   .badge-stock-ok {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full
-           bg-green-50 text-green-700 text-xs font-medium;
+    @apply inline-flex items-center px-2 py-0.5 rounded-sm
+           bg-emerald-50 text-emerald-700 text-xs font-medium;
   }
 
   /* Line clamp helpers */
   .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
   .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+
+  /* ── GPU-composited card shadow (uses filter, not box-shadow) */
+  .card-drop-shadow {
+    filter: drop-shadow(0 1px 4px rgb(44 26 14 / 0.07));
+    transition: filter 200ms ease-out, transform 200ms ease-out;
+  }
+  .card-drop-shadow:hover {
+    filter: drop-shadow(0 6px 20px rgb(44 26 14 / 0.11));
+  }
+
+  /* ── Button micro-interaction */
+  .btn-micro {
+    transition: transform 100ms ease, opacity 100ms ease;
+  }
+  .btn-micro:hover  { transform: scale(1.07); }
+  .btn-micro:active { transform: scale(0.94); }
+}
+
+/* ── Reduced motion — covers tw-animate-css + all CSS transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card-drop-shadow { transition: none; }
+  .btn-micro { transform: none !important; }
 }

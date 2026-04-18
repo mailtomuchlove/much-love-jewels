@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { StatsCards } from "@/components/admin/stats-cards";
 import { formatPrice } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -19,8 +18,9 @@ const STATUS_COLORS: Record<string, string> = {
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  const [ordersResult, productsResult, recentOrdersResult] = await Promise.all([
-    supabase.from("orders").select("id, total_paise, status, payment_status"),
+  const [statsResult, productsResult, recentOrdersResult] = await Promise.all([
+    // Aggregate via DB function — avoids fetching all rows as order volume grows
+    supabase.rpc("get_dashboard_stats"),
     supabase.from("products").select("id", { count: "exact" }).eq("is_active", true),
     supabase
       .from("orders")
@@ -29,10 +29,14 @@ export default async function AdminDashboardPage() {
       .limit(8),
   ]);
 
-  const orders = ordersResult.data ?? [];
-  const paidOrders = orders.filter((o) => o.payment_status === "paid");
-  const revenue = paidOrders.reduce((sum, o) => sum + o.total_paise, 0);
-  const pendingCount = orders.filter((o) => o.status === "pending").length;
+  const stats = statsResult.data as {
+    total_revenue: number;
+    total_orders: number;
+    pending_count: number;
+  } | null;
+  const revenue = stats?.total_revenue ?? 0;
+  const pendingCount = stats?.pending_count ?? 0;
+  const orderCount = stats?.total_orders ?? 0;
   const productCount = productsResult.count ?? 0;
   const recentOrders = recentOrdersResult.data ?? [];
 
@@ -45,7 +49,7 @@ export default async function AdminDashboardPage() {
 
       <StatsCards
         revenue={revenue}
-        orderCount={orders.length}
+        orderCount={orderCount}
         productCount={productCount}
         pendingCount={pendingCount}
       />

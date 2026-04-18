@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
+import type { Json } from "@/types";
 import { Search, ChevronRight } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -23,7 +24,7 @@ type OrderRow = {
   payment_status: string;
   total_paise: number;
   created_at: string;
-  shipping_address: Record<string, string>;
+  shipping_address: Json;
 };
 
 export function OrdersTable({ orders }: { orders: OrderRow[] }) {
@@ -32,7 +33,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
   const filtered = orders.filter(
     (o) =>
       o.order_number.toLowerCase().includes(search.toLowerCase()) ||
-      ((o.shipping_address?.name as string) ?? "")
+      (((o.shipping_address as Record<string, unknown>)?.name as string) ?? "")
         .toLowerCase()
         .includes(search.toLowerCase())
   );
@@ -73,7 +74,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
                   {order.order_number}
                 </td>
                 <td className="px-4 py-3 text-gray-600">
-                  {(order.shipping_address?.name as string) ?? "—"}
+                  {((order.shipping_address as Record<string, unknown>)?.name as string) ?? "—"}
                 </td>
                 <td className="px-4 py-3">
                   <span

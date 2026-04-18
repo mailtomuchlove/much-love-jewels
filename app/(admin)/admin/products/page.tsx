@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { ProductsTable } from "./products-table";
 import Link from "next/link";
-import Image from "next/image";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 

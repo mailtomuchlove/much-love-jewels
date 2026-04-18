@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { formatPrice, discountPercent } from "@/lib/utils";
 import { ImageGallery } from "@/components/storefront/image-gallery";
-import { AddToCartButton } from "@/components/storefront/add-to-cart-button";
-import { WishlistButton } from "@/components/storefront/wishlist-button";
-import { StockIndicator } from "@/components/storefront/stock-indicator";
+import { ProductActions } from "@/components/storefront/product-actions";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { Star, Shield, Truck, Ban } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 
 export const revalidate = 3600;
 
@@ -18,7 +15,7 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data } = await supabase
     .from("products")
     .select("slug")
@@ -37,11 +34,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) return { title: "Product Not Found" };
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
   return {
     title: data.meta_title ?? data.name,
     description:
       data.meta_description ??
       `Buy ${data.name} at ${formatPrice(data.price)}. Premium handcrafted jewellery.`,
+    alternates: {
+      canonical: `${siteUrl}/products/${slug}`,
+    },
     openGraph: {
       images: data.images?.[0] ? [{ url: data.images[0] }] : [],
     },
@@ -55,7 +57,7 @@ export default async function ProductPage({ params }: PageProps) {
   const { data: product } = await supabase
     .from("products")
     .select(
-      "*, categories(id, name, slug), product_variants(*), reviews(id, rating, comment, created_at, profiles(name))"
+      "*, categories(id, name, slug), product_variants(*), reviews(id, rating, is_approved, comment, created_at, profiles(name))"
     )
     .eq("slug", slug)
     .eq("is_active", true)
@@ -200,13 +202,6 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Stock */}
-            <div className="mb-5">
-              <StockIndicator stock={product.stock} />
-            </div>
-
-            <Separator className="mb-5" />
-
             {/* Meta */}
             {(product.material || product.weight_grams) && (
               <div className="flex gap-4 mb-5 text-sm">
@@ -225,43 +220,25 @@ export default async function ProductPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Variants */}
-            {variants.length > 0 && (
-              <div className="mb-5">
-                <p className="text-sm font-semibold text-brand-navy mb-2">
-                  Size / Variant
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {variants.map((v: { id: string; label: string; stock: number }) => (
-                    <button
-                      key={v.id}
-                      className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
-                        v.stock === 0
-                          ? "opacity-40 cursor-not-allowed border-brand-border text-gray-400"
-                          : "border-brand-navy text-brand-navy hover:bg-brand-navy hover:text-white"
-                      }`}
-                      disabled={v.stock === 0}
-                    >
-                      {v.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Add to Cart */}
-            <div className="flex gap-3 mb-6">
-              <AddToCartButton
-                productId={product.id}
-                stock={product.stock}
-                className="flex-1 h-11"
-                size="lg"
-              />
-              <WishlistButton
-                productId={product.id}
-                className="h-11 w-11 flex-shrink-0 border border-brand-border rounded-md"
-              />
-            </div>
+            {/* Stock indicator, variant selector, add-to-cart, wishlist, mobile sticky */}
+            <ProductActions
+              productId={product.id}
+              baseStock={product.stock}
+              product={{
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                images: product.images ?? [],
+                image_public_ids: product.image_public_ids ?? [],
+                price: product.price,
+              }}
+              variants={variants.map((v: { id: string; label: string; stock: number; price_adjustment: number }) => ({
+                id: v.id,
+                label: v.label,
+                stock: v.stock,
+                price_adjustment: v.price_adjustment ?? 0,
+              }))}
+            />
 
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3">
@@ -282,16 +259,6 @@ export default async function ProductPage({ params }: PageProps) {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Mobile sticky add to cart */}
-        <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-brand-border p-4 md:hidden">
-          <AddToCartButton
-            productId={product.id}
-            stock={product.stock}
-            className="w-full h-11"
-            size="lg"
-          />
         </div>
 
         {/* Tabs: Description, Care, Shipping */}

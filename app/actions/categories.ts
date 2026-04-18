@@ -4,7 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/utils";
+import { isAllowedImageUrl } from "@/lib/image-utils";
 import type { ActionResult } from "@/types";
+
+function validateImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null; // blank is fine
+  if (!isAllowedImageUrl(url))
+    return "Image URL must be from res.cloudinary.com. Upload the image to Cloudinary first.";
+  return null;
+}
 
 type CategoryFormData = {
   name: string;
@@ -18,8 +26,11 @@ export async function createCategory(
   data: CategoryFormData
 ): Promise<ActionResult<{ id: string }>> {
   await requireAdmin();
-  const supabase = await createClient();
 
+  const imgErr = validateImageUrl(data.image_url);
+  if (imgErr) return { success: false, error: imgErr };
+
+  const supabase = await createClient();
   const slug = generateSlug(data.name);
 
   const { data: category, error } = await supabase
@@ -47,6 +58,10 @@ export async function updateCategory(
   data: Partial<CategoryFormData>
 ): Promise<ActionResult<void>> {
   await requireAdmin();
+
+  const imgErr = validateImageUrl(data.image_url);
+  if (imgErr) return { success: false, error: imgErr };
+
   const supabase = await createClient();
 
   const { error } = await supabase

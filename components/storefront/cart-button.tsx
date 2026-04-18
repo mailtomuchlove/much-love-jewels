@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import { useCartUI, useGuestCart } from "@/store/cart-store";
 
@@ -10,9 +11,13 @@ interface CartButtonProps {
 export function CartButton({ serverCount }: CartButtonProps) {
   const { toggle } = useCartUI();
   const { itemCount } = useGuestCart();
+  const [mounted, setMounted] = useState(false);
 
-  // Use guest cart count for guests, server count for logged-in users
-  const count = itemCount() || serverCount;
+  useEffect(() => { setMounted(true); }, []);
+
+  // Before mount: use serverCount so SSR and initial client HTML match (no hydration error).
+  // After mount: use the live Zustand count only — it matches exactly what the drawer shows.
+  const count = mounted ? itemCount() : serverCount;
 
   return (
     <button

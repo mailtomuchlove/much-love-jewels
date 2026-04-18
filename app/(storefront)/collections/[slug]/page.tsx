@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { ProductFilters } from "@/components/storefront/product-filters";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 
 export const revalidate = 3600;
@@ -19,7 +20,7 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data } = await supabase
     .from("categories")
     .select("slug")
@@ -40,11 +41,16 @@ export async function generateMetadata({
 
   if (!category) return { title: "Collection Not Found" };
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
   return {
     title: `${category.name} Collection`,
     description:
       category.description ??
       `Shop our ${category.name} collection. Premium handcrafted jewellery.`,
+    alternates: {
+      canonical: `${siteUrl}/collections/${slug}`,
+    },
   };
 }
 
@@ -84,8 +90,10 @@ export default async function CollectionPage({
     .range(offset, offset + PAGE_SIZE - 1);
 
   if (sp.material) query = query.eq("material", sp.material);
-  if (sp.minPrice) query = query.gte("price", Number(sp.minPrice));
-  if (sp.maxPrice) query = query.lte("price", Number(sp.maxPrice));
+  const minPrice = Number(sp.minPrice);
+  const maxPrice = Number(sp.maxPrice);
+  if (sp.minPrice && !Number.isNaN(minPrice)) query = query.gte("price", minPrice);
+  if (sp.maxPrice && !Number.isNaN(maxPrice)) query = query.lte("price", maxPrice);
 
   switch (sp.sort) {
     case "price_asc":
@@ -124,7 +132,19 @@ export default async function CollectionPage({
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Filters sidebar — desktop */}
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={
+            <div className="hidden lg:block w-56 flex-shrink-0 space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          }
+        >
           <ProductFilters className="hidden lg:block w-56 flex-shrink-0" />
         </Suspense>
 
@@ -132,7 +152,7 @@ export default async function CollectionPage({
         <div className="flex-1 min-w-0">
           {/* Mobile filters */}
           <div className="mb-4 lg:hidden">
-            <Suspense fallback={null}>
+            <Suspense fallback={<Skeleton className="h-10 w-full rounded-md" />}>
               <ProductFilters />
             </Suspense>
           </div>

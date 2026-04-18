@@ -4,72 +4,100 @@ import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadProductImage, deleteImage } from "@/app/actions/upload";
 import { toast } from "sonner";
-import { ImagePlus, Trash2, Crown, Loader2 } from "lucide-react";
+import { ImagePlus, Trash2, Crown, Loader2, Play, AlertTriangle } from "lucide-react";
+import { isAllowedImageUrl } from "@/lib/image-utils";
 
-type UploadedImage = {
+export type UploadedImage = {
   secure_url: string;
   public_id: string;
+  resource_type?: string;  // "image" | "video"
   uploading?: boolean;
-  previewUrl?: string; // local object URL during upload
+  previewUrl?: string;
 };
 
 interface ImageUploadProps {
   value: UploadedImage[];
-  onChange: (images: UploadedImage[]) => void;
+  onChange: (images: UploadedImage[] | ((prev: UploadedImage[]) => UploadedImage[])) => void;
   maxFiles?: number;
+  /** Context passed to Cloudinary for organised folder structure */
+  uploadContext?: { categoryName?: string; productName?: string };
+  /** Accept videos in addition to images */
+  acceptVideo?: boolean;
 }
 
-const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_MB = 5;
+const ALLOWED_IMAGES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ALLOWED_VIDEOS = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
+const MAX_IMAGE_MB = 5;
+const MAX_VIDEO_MB = 50;
 
-export function ImageUpload({ value, onChange, maxFiles = 6 }: ImageUploadProps) {
+export function ImageUpload({
+  value,
+  onChange,
+  maxFiles = 6,
+  uploadContext,
+  acceptVideo = false,
+}: ImageUploadProps) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const allowedTypes = acceptVideo ? [...ALLOWED_IMAGES, ...ALLOWED_VIDEOS] : ALLOWED_IMAGES;
+  const acceptAttr = allowedTypes.join(",");
 
   async function processFiles(files: File[]) {
     const remaining = maxFiles - value.length;
     const toUpload = files.slice(0, remaining);
 
     for (const file of toUpload) {
-      if (!ALLOWED.includes(file.type)) {
-        toast.error(`${file.name}: Only JPEG, PNG, or WebP allowed`);
+      const isVideo = ALLOWED_VIDEOS.includes(file.type);
+      const isImage = ALLOWED_IMAGES.includes(file.type);
+
+      if (!isImage && !isVideo) {
+        toast.error(`${file.name}: ${acceptVideo ? "Only JPEG, PNG, WebP or MP4/WebM allowed" : "Only JPEG, PNG, WebP allowed"}`);
         continue;
       }
-      if (file.size > MAX_MB * 1024 * 1024) {
-        toast.error(`${file.name}: Must be smaller than ${MAX_MB}MB`);
+      if (isImage && file.size > MAX_IMAGE_MB * 1024 * 1024) {
+        toast.error(`${file.name}: Image must be under ${MAX_IMAGE_MB} MB`);
+        continue;
+      }
+      if (isVideo && file.size > MAX_VIDEO_MB * 1024 * 1024) {
+        toast.error(`${file.name}: Video must be under ${MAX_VIDEO_MB} MB`);
         continue;
       }
 
-      // Optimistic entry
       const previewUrl = URL.createObjectURL(file);
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const optimistic: UploadedImage = {
         secure_url: previewUrl,
         public_id: tempId,
+        resource_type: isVideo ? "video" : "image",
         uploading: true,
         previewUrl,
       };
 
-      onChange([...value, optimistic]);
+      onChange((prev) => [...prev, optimistic]);
 
-      // Upload
       const formData = new FormData();
       formData.append("file", file);
+      if (uploadContext?.categoryName) formData.append("category_name", uploadContext.categoryName);
+      if (uploadContext?.productName)  formData.append("product_name",  uploadContext.productName);
+
       const result = await uploadProductImage(formData);
 
       if (!result.success) {
         toast.error(result.error);
-        // Remove optimistic entry
-        onChange(value.filter((img) => img.public_id !== tempId));
+        onChange((prev) => prev.filter((img) => img.public_id !== tempId));
         URL.revokeObjectURL(previewUrl);
         continue;
       }
 
-      // Replace optimistic with real
-      onChange((prev: UploadedImage[]) =>
+      onChange((prev) =>
         prev.map((img) =>
           img.public_id === tempId
-            ? { secure_url: result.data.secure_url, public_id: result.data.public_id }
+            ? {
+                secure_url: result.data.secure_url,
+                public_id: result.data.public_id,
+                resource_type: result.data.resource_type,
+              }
             : img
         )
       );
@@ -81,31 +109,27 @@ export function ImageUpload({ value, onChange, maxFiles = 6 }: ImageUploadProps)
     async (e: React.DragEvent) => {
       e.preventDefault();
       setDragging(false);
-      const files = Array.from(e.dataTransfer.files);
-      await processFiles(files);
+      await processFiles(Array.from(e.dataTransfer.files));
     },
-    [value, onChange]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [value, onChange, uploadContext]
   );
 
   const handleFileInput = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files ?? []);
-      await processFiles(files);
-      // Reset input so same file can be re-selected
+      await processFiles(Array.from(e.target.files ?? []));
       if (inputRef.current) inputRef.current.value = "";
     },
-    [value, onChange]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [value, onChange, uploadContext]
   );
 
   async function handleDelete(img: UploadedImage, index: number) {
     if (img.uploading) return;
-    // Remove from local state immediately
     onChange(value.filter((_, i) => i !== index));
-    // Delete from Cloudinary in background
-    const result = await deleteImage(img.public_id);
-    if (!result.success) {
-      toast.error("Could not delete from Cloudinary: " + result.error);
-    }
+    const resourceType = img.resource_type === "video" ? "video" : "image";
+    const result = await deleteImage(img.public_id, resourceType);
+    if (!result.success) toast.error("Could not delete: " + result.error);
   }
 
   function moveToFirst(index: number) {
@@ -120,7 +144,6 @@ export function ImageUpload({ value, onChange, maxFiles = 6 }: ImageUploadProps)
 
   return (
     <div className="space-y-3">
-      {/* Drop zone */}
       {!atLimit && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -135,16 +158,19 @@ export function ImageUpload({ value, onChange, maxFiles = 6 }: ImageUploadProps)
         >
           <ImagePlus className="h-8 w-8 text-gray-400 mb-2" />
           <p className="text-sm font-medium text-gray-700">
-            Drag images here or{" "}
+            Drag files here or{" "}
             <span className="text-brand-navy underline">browse</span>
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            JPEG, PNG, WebP · max {MAX_MB}MB · up to {maxFiles} images
+            {acceptVideo
+              ? `Images (JPEG/PNG/WebP ≤${MAX_IMAGE_MB}MB) · Videos (MP4/WebM ≤${MAX_VIDEO_MB}MB)`
+              : `JPEG, PNG, WebP · max ${MAX_IMAGE_MB}MB`}{" "}
+            · up to {maxFiles} files
           </p>
           <input
             ref={inputRef}
             type="file"
-            accept={ALLOWED.join(",")}
+            accept={acceptAttr}
             multiple
             className="hidden"
             onChange={handleFileInput}
@@ -152,66 +178,89 @@ export function ImageUpload({ value, onChange, maxFiles = 6 }: ImageUploadProps)
         </div>
       )}
 
-      {/* Preview grid */}
       {value.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-          {value.map((img, i) => (
-            <div
-              key={img.public_id}
-              className="relative group rounded-lg overflow-hidden bg-gray-100 aspect-square"
-            >
-              <Image
-                src={img.previewUrl ?? img.secure_url}
-                alt={`Product image ${i + 1}`}
-                fill
-                className={`object-cover transition-opacity ${img.uploading ? "opacity-50" : "opacity-100"}`}
-                sizes="150px"
-              />
+          {value.map((img, i) => {
+            const isVideo = img.resource_type === "video";
+            return (
+              <div
+                key={img.public_id}
+                className="relative group rounded-lg overflow-hidden bg-gray-100 aspect-square"
+              >
+                {isVideo ? (
+                  <>
+                    <video
+                      src={img.previewUrl ?? img.secure_url}
+                      className={`w-full h-full object-cover transition-opacity ${img.uploading ? "opacity-50" : ""}`}
+                      muted
+                      playsInline
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <Play className="h-6 w-6 text-white drop-shadow" />
+                    </div>
+                  </>
+                ) : (() => {
+                    const imgSrc = img.previewUrl ?? img.secure_url;
+                    const allowed = isAllowedImageUrl(imgSrc);
+                    return allowed ? (
+                      <Image
+                        src={imgSrc}
+                        alt={`Upload ${i + 1}`}
+                        fill
+                        className={`object-cover transition-opacity ${img.uploading ? "opacity-50" : ""}`}
+                        sizes="150px"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-red-50 p-2 text-center">
+                        <AlertTriangle className="h-5 w-5 text-red-400" />
+                        <span className="text-[10px] text-red-500 leading-tight">Invalid URL — delete &amp; re-upload via Cloudinary</span>
+                      </div>
+                    );
+                  })()}
 
-              {img.uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <Loader2 className="h-5 w-5 text-white animate-spin" />
-                </div>
-              )}
+                {img.uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  </div>
+                )}
 
-              {/* Crown: first image = main thumbnail */}
-              {i === 0 && !img.uploading && (
-                <div className="absolute top-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-gold shadow-sm">
-                  <Crown className="h-2.5 w-2.5 text-white" />
-                </div>
-              )}
+                {i === 0 && !img.uploading && (
+                  <div className="absolute top-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-gold shadow-sm">
+                    <Crown className="h-2.5 w-2.5 text-white" />
+                  </div>
+                )}
 
-              {/* Actions (visible on hover) */}
-              {!img.uploading && (
-                <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
-                  {i !== 0 && (
+                {!img.uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
+                    {i !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => moveToFirst(i)}
+                        title="Set as main"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-brand-gold hover:text-white transition-colors"
+                      >
+                        <Crown className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => moveToFirst(i)}
-                      title="Set as main image"
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-brand-gold hover:text-white transition-colors"
+                      onClick={() => handleDelete(img, i)}
+                      title="Delete"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-red-500 hover:text-white transition-colors"
                     >
-                      <Crown className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(img, i)}
-                    title="Delete image"
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-red-500 hover:text-white transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
       {value.length > 0 && (
         <p className="text-xs text-gray-400">
-          {value.length}/{maxFiles} images · First image is the main thumbnail
+          {value.length}/{maxFiles} files · First file is the main thumbnail
         </p>
       )}
     </div>

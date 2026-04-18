@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
+import { MotionProvider } from "@/components/providers/motion-provider";
 
-const poppins = Poppins({
+/* Serif display font — used for all headings */
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
-const inter = Inter({
+/* Elegant geometric sans — UI text, body, buttons */
+const jost = Jost({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-jost",
   display: "swap",
 });
 
@@ -31,6 +35,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
   },
+  twitter: {
+    card: "summary_large_image",
+    site: "@muchlovejewels",
+  },
+  alternates: {
+    canonical: process.env.NEXT_PUBLIC_SITE_URL ?? "https://muchlovejewels.com",
+  },
 };
 
 export default function RootLayout({
@@ -41,9 +52,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${inter.variable} h-full`}
+      data-scroll-behavior="smooth"
+      className={`${cormorant.variable} ${jost.variable} h-full`}
     >
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <MotionProvider>{children}</MotionProvider>
+      </body>
     </html>
   );
 }

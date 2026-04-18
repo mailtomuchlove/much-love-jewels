@@ -5,8 +5,9 @@ import { requireAuth } from "@/lib/auth";
 import { razorpay, verifyRazorpaySignature } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { SHIPPING_FREE_THRESHOLD_PAISE, SHIPPING_CHARGE_PAISE } from "@/utils/constants";
+import { checkOrderRateLimit } from "@/lib/ratelimit";
 import { revalidatePath } from "next/cache";
-import type { ActionResult } from "@/types";
+import type { ActionResult, Json } from "@/types";
 
 type CreateOrderResult = {
   orderId: string;
@@ -21,6 +22,13 @@ export async function createOrder(
   addressId: string
 ): Promise<ActionResult<CreateOrderResult>> {
   const profile = await requireAuth();
+
+  // Rate limit: max 10 order creations per hour per user
+  const { allowed } = await checkOrderRateLimit(profile.id);
+  if (!allowed) {
+    return { success: false, error: "Too many orders. Please wait before placing another." };
+  }
+
   const supabase = await createClient();
 
   // 1. Fetch shipping address
@@ -113,7 +121,7 @@ export async function createOrder(
       subtotal_paise: subtotalPaise,
       shipping_paise: shippingPaise,
       total_paise: totalPaise,
-      shipping_address: address as unknown as Record<string, unknown>,
+      shipping_address: address as unknown as Json,
     })
     .select()
     .single();
@@ -207,8 +215,10 @@ export async function verifyPayment(
     return { success: true, data: { orderId: input.orderId } };
   }
 
-  // 3. Update order status
-  const { error: updateError } = await supabase
+  // 3. Update order status — only if still pending (atomic guard against duplicate processing)
+  // Using .select() so we know whether this call actually owned the update.
+  // If the webhook already processed this payment the update matches 0 rows → data is null.
+  const { data: updatedOrder, error: updateError } = await supabase
     .from("orders")
     .update({
       payment_status: "paid",
@@ -216,26 +226,30 @@ export async function verifyPayment(
       payment_id: input.razorpayPaymentId,
     })
     .eq("id", input.orderId)
-    .eq("payment_status", "pending"); // Guard: only update if still pending
+    .eq("payment_status", "pending")
+    .select("id")
+    .maybeSingle();
 
   if (updateError) return { success: false, error: updateError.message };
 
-  // 4. Fetch order items and decrement stock atomically
-  const { data: orderItems } = await supabase
-    .from("order_items")
-    .select("product_id, variant_id, quantity")
-    .eq("order_id", input.orderId);
+  // 4. Decrement stock only if this call owned the update — prevents double decrement with webhook
+  if (updatedOrder) {
+    const { data: orderItems } = await supabase
+      .from("order_items")
+      .select("product_id, variant_id, quantity")
+      .eq("order_id", input.orderId);
 
-  if (orderItems) {
-    for (const item of orderItems) {
-      try {
-        await supabase.rpc("decrement_stock", {
-          p_product_id: item.product_id,
-          p_quantity: item.quantity,
-        });
-      } catch (err) {
-        // Log but don't fail — order is already paid
-        console.error("Stock decrement failed:", item.product_id, err);
+    if (orderItems) {
+      for (const item of orderItems) {
+        try {
+          await supabase.rpc("decrement_stock", {
+            p_product_id: item.product_id,
+            p_quantity: item.quantity,
+          });
+        } catch (err) {
+          // Log but don't fail — order is already paid
+          console.error("Stock decrement failed:", item.product_id, err);
+        }
       }
     }
   }

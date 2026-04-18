@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { MapPin, Plus, Check } from "lucide-react";
+import { SafeImage } from "@/components/ui/safe-image";
+import { Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,11 +18,13 @@ import { RazorpayButton } from "@/components/storefront/checkout/razorpay-button
 import { createAddress } from "@/app/actions/addresses";
 import { formatPrice } from "@/lib/utils";
 import { INDIAN_STATES } from "@/utils/constants";
+import { addressSchema } from "@/utils/validators";
 import { toast } from "sonner";
 import type { Address, Profile } from "@/types";
 
 interface CheckoutClientProps {
   profile: Profile;
+  userEmail: string;
   addresses: Address[];
   cartItems: {
     id: string;
@@ -37,6 +39,7 @@ interface CheckoutClientProps {
 
 export function CheckoutClient({
   profile,
+  userEmail,
   addresses,
   cartItems,
   subtotal,
@@ -62,6 +65,14 @@ export function CheckoutClient({
   });
 
   async function handleSaveAddress() {
+    // Client-side validation before hitting the server
+    const parsed = addressSchema.safeParse(newAddr);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      toast.error(firstError?.message ?? "Please check your address details");
+      return;
+    }
+
     setSaving(true);
     const result = await createAddress(newAddr);
     setSaving(false);
@@ -73,8 +84,6 @@ export function CheckoutClient({
     setShowNewForm(false);
     toast.success("Address saved!");
   }
-
-  const supabaseEmail = profile.id; // We'll use profile id as placeholder — real email from auth
 
   return (
     <div className="space-y-6">
@@ -218,7 +227,7 @@ export function CheckoutClient({
                 <Select
                   value={newAddr.state}
                   onValueChange={(v) =>
-                    setNewAddr((p) => ({ ...p, state: v }))
+                    setNewAddr((p) => ({ ...p, state: v ?? "" }))
                   }
                 >
                   <SelectTrigger className="mt-1 h-10">
@@ -274,15 +283,13 @@ export function CheckoutClient({
             return (
               <li key={item.id} className="flex items-center gap-3 py-3">
                 <div className="relative h-14 w-14 flex-shrink-0 rounded-sm overflow-hidden bg-brand-cream">
-                  {item.products?.images?.[0] && (
-                    <Image
-                      src={item.products.images[0]}
-                      alt={item.products?.name ?? ""}
-                      fill
-                      className="object-cover"
-                      sizes="56px"
-                    />
-                  )}
+                  <SafeImage
+                    src={item.products?.images?.[0]}
+                    alt={item.products?.name ?? ""}
+                    fill
+                    className="object-cover"
+                    sizes="56px"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-brand-text line-clamp-1">
@@ -348,7 +355,7 @@ export function CheckoutClient({
           <RazorpayButton
             addressId={selectedAddressId}
             userName={profile.name ?? "Customer"}
-            userEmail={profile.id}
+            userEmail={userEmail}
             userPhone={profile.phone ?? undefined}
           />
         ) : (

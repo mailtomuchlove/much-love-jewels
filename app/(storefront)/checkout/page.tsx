@@ -1,6 +1,5 @@
 import { requireAuth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
 import { SHIPPING_FREE_THRESHOLD_PAISE, SHIPPING_CHARGE_PAISE } from "@/utils/constants";
 import { CheckoutClient } from "./checkout-client";
 import type { Metadata } from "next";
@@ -11,20 +10,25 @@ export default async function CheckoutPage() {
   const profile = await requireAuth();
   const supabase = await createClient();
 
-  // Fetch addresses
-  const { data: addresses } = await supabase
-    .from("addresses")
-    .select("*")
-    .eq("user_id", profile.id)
-    .order("is_default", { ascending: false });
+  // Fetch addresses, cart, and auth user email in parallel
+  const [addressesResult, cartResult, authResult] = await Promise.all([
+    supabase
+      .from("addresses")
+      .select("*")
+      .eq("user_id", profile.id)
+      .order("is_default", { ascending: false }),
+    supabase
+      .from("cart_items")
+      .select(
+        "id, quantity, product_id, variant_id, products(id, name, price, images, image_public_ids, stock), product_variants(id, label, price_adjustment)"
+      )
+      .eq("user_id", profile.id),
+    supabase.auth.getUser(),
+  ]);
 
-  // Fetch DB cart
-  const { data: cartItems } = await supabase
-    .from("cart_items")
-    .select(
-      "id, quantity, product_id, variant_id, products(id, name, price, images, image_public_ids, stock), product_variants(id, label, price_adjustment)"
-    )
-    .eq("user_id", profile.id);
+  const addresses = addressesResult.data;
+  const cartItems = cartResult.data;
+  const userEmail = authResult.data.user?.email ?? "";
 
   const items = cartItems ?? [];
 
@@ -43,6 +47,7 @@ export default async function CheckoutPage() {
       <h1 className="heading-h1 mb-8">Checkout</h1>
       <CheckoutClient
         profile={profile}
+        userEmail={userEmail}
         addresses={addresses ?? []}
         cartItems={items as never}
         subtotal={subtotal}

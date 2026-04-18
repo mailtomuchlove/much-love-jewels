@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { CldImage } from "next-cloudinary";
-import Image from "next/image";
+import { motion } from "framer-motion";
 import { formatPrice, discountPercent, cloudinaryBlurUrl } from "@/lib/utils";
+import { SafeImage } from "@/components/ui/safe-image";
 import type { Product, Category } from "@/types";
 import { AddToCartButton } from "./add-to-cart-button";
 import { WishlistButton } from "./wishlist-button";
@@ -50,7 +51,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const fallbackImage = images?.[0];
 
   return (
-    <div className="group relative bg-white rounded-md overflow-hidden transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: "var(--shadow-card)" }} onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card-hover)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card)"; }}>
+    <motion.div
+      className="group relative bg-white rounded-md overflow-hidden card-drop-shadow"
+      whileHover={{ y: -4, transition: { duration: 0.2, ease: "easeOut" } }}
+      whileTap={{ scale: 0.98 }}
+    >
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
         {discount && (
@@ -93,7 +98,7 @@ export function ProductCard({ product }: ProductCardProps) {
             blurDataURL={cloudinaryBlurUrl(publicId)}
           />
         ) : fallbackImage ? (
-          <Image
+          <SafeImage
             src={fallbackImage}
             alt={name}
             width={400}
@@ -134,9 +139,10 @@ export function ProductCard({ product }: ProductCardProps) {
         <AddToCartButton
           productId={id}
           stock={stock}
+          product={{ id, name, slug, images, image_public_ids, price }}
           className="w-full h-9 text-sm"
         />
       </div>
-    </div>
+    </motion.div>
   );
 }

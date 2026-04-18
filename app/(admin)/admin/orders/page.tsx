@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
 import { OrdersTable } from "./orders-table";
 import type { Metadata } from "next";
 

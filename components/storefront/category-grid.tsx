@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { CldImage } from "next-cloudinary";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import type { Category } from "@/types";
 
 interface CategoryGridProps {
@@ -19,15 +18,16 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-6">
-          {categories.map((cat) => (
+          {categories.map((cat, i) => (
             <Link
               key={cat.id}
               href={`/collections/${cat.slug}`}
-              className="group relative flex flex-col items-center gap-3"
+              className="group relative flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+              style={{ animationDelay: `${i * 60}ms`, animationDuration: "0.45s" }}
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-full border-2 border-transparent bg-white shadow-sm transition-all duration-200 group-hover:border-brand-gold group-hover:shadow-md">
                 {cat.image_url ? (
-                  <Image
+                  <SafeImage
                     src={cat.image_url}
                     alt={cat.name}
                     fill

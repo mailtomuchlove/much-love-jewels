@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Mail, Lock } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 
 type Mode = "login" | "signup" | "forgot";

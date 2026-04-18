@@ -1,7 +1,7 @@
 import { getOrderById } from "@/app/actions/orders";
 import { formatPrice } from "@/lib/utils";
 import { redirect, notFound } from "next/navigation";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import Link from "next/link";
 import { CheckCircle, Package, MapPin, ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -78,15 +78,13 @@ export default async function OrderSuccessPage({ params }: OrderSuccessPageProps
               return (
                 <li key={item.id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                   <div className="relative h-14 w-14 flex-shrink-0 rounded-md overflow-hidden bg-brand-cream">
-                    {imageUrl && (
-                      <Image
-                        src={imageUrl}
-                        alt={item.product_name}
-                        fill
-                        className="object-cover"
-                        sizes="56px"
-                      />
-                    )}
+                    <SafeImage
+                      src={imageUrl}
+                      alt={item.product_name}
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-brand-text line-clamp-1">

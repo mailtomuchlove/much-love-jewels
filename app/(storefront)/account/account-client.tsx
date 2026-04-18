@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -333,15 +332,13 @@ export function AccountClient({
                     <li key={order.id} className="p-4 md:p-5 hover:bg-brand-cream/40 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden bg-brand-cream">
-                          {imageUrl && (
-                            <Image
-                              src={imageUrl}
-                              alt={firstItem.product_name}
-                              fill
-                              className="object-cover"
-                              sizes="48px"
-                            />
-                          )}
+                          <SafeImage
+                            src={imageUrl}
+                            alt={firstItem.product_name}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -519,7 +516,7 @@ export function AccountClient({
                       <Link href={`/products/${product.slug}`} className="block">
                         <div className="aspect-square overflow-hidden rounded-md bg-brand-cream mb-3">
                           {product.images[0] ? (
-                            <Image
+                            <SafeImage
                               src={product.images[0]}
                               alt={product.name}
                               width={300}
@@ -615,7 +612,7 @@ function AddressForm({ form, setForm, onSave, saving }: AddressFormProps) {
         </div>
         <div className="col-span-2">
           <Label className="text-xs font-medium">State</Label>
-          <Select value={form.state} onValueChange={(v) => setForm((p) => ({ ...p, state: v }))}>
+          <Select value={form.state} onValueChange={(v) => setForm((p) => ({ ...p, state: v ?? "" }))}>
             <SelectTrigger className="mt-1 h-10">
               <SelectValue placeholder="Select state" />
             </SelectTrigger>

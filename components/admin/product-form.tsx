@@ -17,13 +17,14 @@ import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "./image-upload";
 import { createProduct, updateProduct } from "@/app/actions/products";
 import { paiseToRupees } from "@/lib/utils";
+import { productSchema } from "@/utils/validators";
 import { toast } from "sonner";
 import type { Category, Product } from "@/types";
 
-type ImageEntry = { secure_url: string; public_id: string; uploading?: boolean; previewUrl?: string };
+type ImageEntry = { secure_url: string; public_id: string; resource_type?: string; uploading?: boolean; previewUrl?: string };
 
 interface ProductFormProps {
-  categories: Category[];
+  categories: Pick<Category, "id" | "name">[];
   product?: Product; // if present, we're editing
 }
 
@@ -71,6 +72,28 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       return;
     }
 
+    // Client-side validation before hitting the server
+    const validation = productSchema.safeParse({
+      name: form.name,
+      slug: form.name, // slug is generated server-side; pass name as placeholder
+      price: parseFloat(form.price) || 0,
+      compare_price: form.compare_price ? parseFloat(form.compare_price) : null,
+      category_id: form.category_id,
+      stock: parseInt(form.stock) || 0,
+      material: form.material || undefined,
+      weight_grams: form.weight_grams ? parseFloat(form.weight_grams) : null,
+      is_active: form.is_active,
+      is_featured: form.is_featured,
+      meta_title: form.meta_title || null,
+      meta_description: form.meta_description || null,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.issues[0];
+      toast.error(firstError?.message ?? "Please check the form fields");
+      return;
+    }
+
     setSaving(true);
     const data = {
       name: form.name,
@@ -110,9 +133,17 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       {/* Images */}
       <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <h3 className="font-poppins text-sm font-semibold text-gray-800 mb-4">
-          Product Images <span className="text-red-500">*</span>
+          Product Images / Videos <span className="text-red-500">*</span>
         </h3>
-        <ImageUpload value={images} onChange={setImages} />
+        <ImageUpload
+          value={images}
+          onChange={setImages}
+          acceptVideo
+          uploadContext={{
+            categoryName: categories.find((c) => c.id === form.category_id)?.name,
+            productName: form.name || undefined,
+          }}
+        />
       </div>
 
       {/* Basic info */}
@@ -150,10 +181,14 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           <Select
             required
             value={form.category_id}
-            onValueChange={(v) => setField("category_id", v)}
+            onValueChange={(v) => v && setField("category_id", v)}
           >
             <SelectTrigger className="mt-1 h-10">
-              <SelectValue placeholder="Select a category" />
+              <SelectValue placeholder="Select a category">
+                {(v: string | null) =>
+                  v ? (categories.find((c) => c.id === v)?.name ?? "Select a category") : null
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (

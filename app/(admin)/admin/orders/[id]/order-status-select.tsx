@@ -46,7 +46,7 @@ export function OrderStatusSelect({
 
   return (
     <div className="flex items-center gap-3">
-      <Select value={status} onValueChange={setStatus}>
+      <Select value={status} onValueChange={(v) => v && setStatus(v)}>
         <SelectTrigger className="h-10 w-48">
           <SelectValue />
         </SelectTrigger>

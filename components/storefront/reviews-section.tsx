@@ -38,11 +38,11 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {reviews.map((review) => (
+          {reviews.map((review, i) => (
             <div
               key={review.id}
-              className="rounded-md border border-brand-border bg-white p-5"
-              style={{ boxShadow: "var(--shadow-card)" }}
+              className="rounded-md border border-brand-border bg-white p-5 animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+              style={{ boxShadow: "var(--shadow-card)", animationDelay: `${i * 80}ms`, animationDuration: "0.45s" }}
             >
               <StarRating rating={review.rating} />
               {review.comment && (

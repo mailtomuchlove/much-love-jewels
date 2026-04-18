@@ -10,6 +10,7 @@ import { HeroBanner } from "@/components/storefront/hero-banner";
 import { CategoryGrid } from "@/components/storefront/category-grid";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { ReviewsSection } from "@/components/storefront/reviews-section";
+import { FadeIn } from "@/components/motion/fade-in";
 import { Toaster } from "@/components/ui/sonner";
 
 export const revalidate = 3600;
@@ -68,8 +69,8 @@ export default async function HomePage() {
         <section className="border-b border-brand-border bg-white">
           <div className="container-site py-5">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {trustBadges.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex items-center gap-3">
+              {trustBadges.map(({ icon: Icon, title, desc }, i) => (
+                <div key={title} className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 fill-mode-both" style={{ animationDelay: `${i * 60}ms`, animationDuration: "0.4s" }}>
                   <div className="flex-shrink-0 h-10 w-10 rounded-full bg-brand-cream flex items-center justify-center">
                     <Icon className="h-5 w-5 text-brand-navy" />
                   </div>
@@ -110,7 +111,7 @@ export default async function HomePage() {
         {/* Brand story */}
         <section className="section bg-brand-navy">
           <div className="container-site">
-            <div className="max-w-2xl mx-auto text-center">
+            <FadeIn className="max-w-2xl mx-auto text-center">
               <p className="text-brand-gold-light text-xs font-semibold uppercase tracking-[0.2em] mb-4">
                 Our Story
               </p>
@@ -129,7 +130,7 @@ export default async function HomePage() {
               >
                 Learn about us
               </Link>
-            </div>
+            </FadeIn>
           </div>
         </section>
 
@@ -138,7 +139,7 @@ export default async function HomePage() {
 
         {/* WhatsApp CTA */}
         <section className="section-sm bg-brand-cream border-t border-brand-border">
-          <div className="container-site text-center">
+          <FadeIn className="container-site text-center">
             <p className="text-base font-medium text-brand-navy mb-2">
               Need help picking the perfect bridal set or AD jewellery?
             </p>
@@ -153,7 +154,7 @@ export default async function HomePage() {
             >
               Chat on WhatsApp
             </Link>
-          </div>
+          </FadeIn>
         </section>
       </main>
       <Footer />

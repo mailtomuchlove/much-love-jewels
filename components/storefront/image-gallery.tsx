@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { CldImage } from "next-cloudinary";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { SafeImage } from "@/components/ui/safe-image";
 import { cloudinaryBlurUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +79,7 @@ export function ImageGallery({
             priority={activeIndex === 0}
           />
         ) : activeFallback ? (
-          <Image
+          <SafeImage
             src={activeFallback}
             alt={`${productName} — image ${activeIndex + 1}`}
             fill
@@ -143,7 +143,7 @@ export function ImageGallery({
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <Image
+                <SafeImage
                   src={src}
                   alt={`Thumbnail ${idx + 1}`}
                   fill
