@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useWishlist } from "@/store/wishlist-store";
 import { toggleWishlist } from "@/app/actions/wishlist";
 import { toast } from "sonner";
-import { useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 
 interface WishlistButtonProps {
   productId: string;
@@ -15,7 +15,12 @@ interface WishlistButtonProps {
 export function WishlistButton({ productId, className }: WishlistButtonProps) {
   const { isWishlisted, optimisticAdd, optimisticRemove } = useWishlist();
   const [isPending, startTransition] = useTransition();
-  const wishlisted = isWishlisted(productId);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Before mount: always render as "not wishlisted" to match server HTML.
+  // After mount: read real state from the Zustand store (seeded by WishlistInitializer).
+  const wishlisted = mounted && isWishlisted(productId);
 
   function handleToggle() {
     // Optimistic update
