@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { validateSignupEmail } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,11 @@ export default function LoginClient() {
       }
 
       if (mode === "signup") {
+        const emailCheck = await validateSignupEmail(email);
+        if (!emailCheck.success) {
+          toast.error(emailCheck.error);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,

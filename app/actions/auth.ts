@@ -2,7 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { isDisposableEmail } from "@/utils/disposable-domains";
 import type { ActionResult } from "@/types";
+
+export async function validateSignupEmail(email: string): Promise<ActionResult<void>> {
+  if (isDisposableEmail(email)) {
+    return { success: false, error: "Disposable email addresses are not allowed. Please use a real email." };
+  }
+  return { success: true, data: undefined };
+}
 
 export async function updateProfile(data: {
   name: string;
