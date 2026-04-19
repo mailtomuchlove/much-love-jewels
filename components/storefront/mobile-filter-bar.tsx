@@ -70,7 +70,7 @@ export function MobileFilterBar() {
   return (
     <>
       {/* Floating pill */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 lg:hidden flex items-stretch bg-white rounded-full shadow-lg border border-gray-200 overflow-hidden">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 lg:hidden flex items-stretch bg-white rounded-full shadow-lg border border-gray-200 overflow-hidden">
         {/* Sort button */}
         <button
           onClick={() => setSortOpen(true)}
