@@ -207,6 +207,13 @@
     filter: drop-shadow(0 6px 20px rgb(44 26 14 / 0.11));
   }
 
+  /* ── Hide scrollbar but keep scrollability */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
   /* ── Button micro-interaction */
   .btn-micro {
     transition: transform 100ms ease, opacity 100ms ease;
