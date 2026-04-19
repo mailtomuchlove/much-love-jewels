@@ -260,11 +260,28 @@ export async function toggleProductStatus(
   return { success: true, data: undefined };
 }
 
+const VALID_ORDER_STATUSES = [
+  "pending",
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refunded",
+] as const;
+
+type OrderStatus = (typeof VALID_ORDER_STATUSES)[number];
+
 export async function updateOrderStatus(
   orderId: string,
   status: string
 ): Promise<ActionResult<void>> {
   await requireAdmin();
+
+  if (!VALID_ORDER_STATUSES.includes(status as OrderStatus)) {
+    return { success: false, error: `Invalid status "${status}". Must be one of: ${VALID_ORDER_STATUSES.join(", ")}` };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase
