@@ -40,6 +40,18 @@ export async function createOrder(
 
   const supabase = await createClient();
 
+  // DB-level fallback: count recent orders in last hour (guards against Redis outage)
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count: recentOrderCount } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id)
+    .gte("created_at", oneHourAgo);
+
+  if ((recentOrderCount ?? 0) >= 10) {
+    return { success: false, error: "Too many orders. Please wait before placing another." };
+  }
+
   // 1. Fetch shipping address
   const { data: address } = await supabase
     .from("addresses")
