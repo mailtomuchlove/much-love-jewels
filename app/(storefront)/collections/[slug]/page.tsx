@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { ProductFilters } from "@/components/storefront/product-filters";
+import { MobileFilterBar } from "@/components/storefront/mobile-filter-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 
@@ -150,13 +151,6 @@ export default async function CollectionPage({
 
         {/* Products */}
         <div className="flex-1 min-w-0">
-          {/* Mobile filters */}
-          <div className="mb-4 lg:hidden">
-            <Suspense fallback={<Skeleton className="h-10 w-full rounded-md" />}>
-              <ProductFilters />
-            </Suspense>
-          </div>
-
           {/* Count */}
           {count !== null && (
             <p className="text-sm text-brand-text-muted mb-5">
@@ -189,6 +183,11 @@ export default async function CollectionPage({
           )}
         </div>
       </div>
+
+      {/* Mobile floating sort/filter pill */}
+      <Suspense fallback={null}>
+        <MobileFilterBar />
+      </Suspense>
     </div>
   );
 }

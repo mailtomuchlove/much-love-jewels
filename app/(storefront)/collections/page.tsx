@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { ProductFilters } from "@/components/storefront/product-filters";
+import { MobileFilterBar } from "@/components/storefront/mobile-filter-bar";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -60,8 +61,8 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
-        <Suspense fallback={<Skeleton className="h-64 w-52 flex-shrink-0" />}>
-          <ProductFilters />
+        <Suspense fallback={<Skeleton className="h-64 w-52 flex-shrink-0 hidden lg:block" />}>
+          <ProductFilters className="hidden lg:block w-56 flex-shrink-0" />
         </Suspense>
 
         <div className="flex-1 min-w-0">
@@ -86,6 +87,11 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           )}
         </div>
       </div>
+
+      {/* Mobile floating sort/filter pill */}
+      <Suspense fallback={null}>
+        <MobileFilterBar />
+      </Suspense>
     </div>
   );
 }
