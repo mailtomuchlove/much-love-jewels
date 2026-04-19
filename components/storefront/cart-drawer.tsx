@@ -184,7 +184,7 @@ export function CartDrawer() {
                                     const newQty = item.quantity - 1;
                                     updateQuantity(item.product_id, item.variant_id, newQty);
                                     if (userIdRef.current) {
-                                      updateCartQuantityByProduct(item.product_id, item.variant_id, newQty).catch(() => {});
+                                      updateCartQuantityByProduct(item.product_id, item.variant_id, newQty).catch(() => toast.error("Failed to update quantity"));
                                     }
                                   }}
                                   className="flex h-7 w-7 items-center justify-center text-gray-600 hover:text-brand-navy transition-colors"
@@ -200,7 +200,7 @@ export function CartDrawer() {
                                     const newQty = item.quantity + 1;
                                     updateQuantity(item.product_id, item.variant_id, newQty);
                                     if (userIdRef.current) {
-                                      updateCartQuantityByProduct(item.product_id, item.variant_id, newQty).catch(() => {});
+                                      updateCartQuantityByProduct(item.product_id, item.variant_id, newQty).catch(() => toast.error("Failed to update quantity"));
                                     }
                                   }}
                                   className="flex h-7 w-7 items-center justify-center text-gray-600 hover:text-brand-navy transition-colors"

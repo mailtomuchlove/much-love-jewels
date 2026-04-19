@@ -1,44 +1,61 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+function IconCircle({ color, children }: { color: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
+      style={{ backgroundColor: color }}
+    >
+      {children}
+    </div>
+  )
+}
 
+const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      position="top-right"
       className="toaster group"
       icons={{
         success: (
-          <CircleCheckIcon className="size-4" />
+          <IconCircle color="#22c55e">
+            <CircleCheckIcon className="h-3.5 w-3.5 text-white" />
+          </IconCircle>
         ),
         info: (
-          <InfoIcon className="size-4" />
+          <IconCircle color="#3b82f6">
+            <InfoIcon className="h-3.5 w-3.5 text-white" />
+          </IconCircle>
         ),
         warning: (
-          <TriangleAlertIcon className="size-4" />
+          <IconCircle color="#f59e0b">
+            <TriangleAlertIcon className="h-3.5 w-3.5 text-white" />
+          </IconCircle>
         ),
         error: (
-          <OctagonXIcon className="size-4" />
+          <IconCircle color="#ef4444">
+            <OctagonXIcon className="h-3.5 w-3.5 text-white" />
+          </IconCircle>
         ),
         loading: (
-          <Loader2Icon className="size-4 animate-spin" />
+          <IconCircle color="#6b7280">
+            <Loader2Icon className="h-3.5 w-3.5 text-white animate-spin" />
+          </IconCircle>
         ),
       }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "mlj-toast",
+          success: "mlj-toast--success",
+          error: "mlj-toast--error",
+          warning: "mlj-toast--warning",
+          info: "mlj-toast--info",
+          title: "mlj-toast__title",
+          description: "mlj-toast__description",
+          closeButton: "mlj-toast__close",
         },
       }}
       {...props}

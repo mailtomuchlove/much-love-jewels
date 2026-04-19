@@ -231,3 +231,27 @@
   .card-drop-shadow { transition: none; }
   .btn-micro { transform: none !important; }
 }
+
+/* ─── Toast (Sonner) — card style with colored left border ─── */
+.mlj-toast {
+  @apply bg-white border border-gray-200 rounded-lg shadow-sm gap-2.5 items-center !important;
+  border-left-width: 4px !important;
+  border-left-color: theme(colors.gray.300) !important;
+  min-width: 300px !important;
+  max-width: 380px !important;
+  padding: 0.75rem 0.875rem !important;
+}
+.mlj-toast--success { border-left-color: theme(colors.green.500) !important; }
+.mlj-toast--error   { border-left-color: theme(colors.red.500) !important; }
+.mlj-toast--warning { border-left-color: theme(colors.amber.500) !important; }
+.mlj-toast--info    { border-left-color: theme(colors.blue.500) !important; }
+
+.mlj-toast__title {
+  @apply text-sm font-semibold text-gray-900 leading-snug !important;
+}
+.mlj-toast__description {
+  @apply text-xs text-gray-500 leading-snug !important;
+}
+.mlj-toast__close {
+  @apply text-gray-400 bg-transparent border-none !important;
+}

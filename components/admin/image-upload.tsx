@@ -27,8 +27,8 @@ interface ImageUploadProps {
 
 const ALLOWED_IMAGES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ALLOWED_VIDEOS = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
-const MAX_IMAGE_MB = 5;
-const MAX_VIDEO_MB = 50;
+const MAX_IMAGE_MB = 10;
+const MAX_VIDEO_MB = 100;
 
 export function ImageUpload({
   value,
@@ -81,17 +81,37 @@ export function ImageUpload({
       if (uploadContext?.categoryName) formData.append("category_name", uploadContext.categoryName);
       if (uploadContext?.productName)  formData.append("product_name",  uploadContext.productName);
 
-      const result = await uploadProductImage(formData);
-
-      if (!result.success) {
-        toast.error(result.error);
+      let result: Awaited<ReturnType<typeof uploadProductImage>>;
+      try {
+        result = await uploadProductImage(formData);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Upload failed";
+        toast.error(msg.includes("form") || msg.includes("body") || msg.includes("size")
+          ? `File too large — max ${isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB} MB`
+          : msg
+        );
         onChange((prev) => prev.filter((img) => img.public_id !== tempId));
         URL.revokeObjectURL(previewUrl);
         continue;
       }
 
-      onChange((prev) =>
-        prev.map((img) =>
+      // If the optimistic entry was already removed (user cancelled), discard the result
+      onChange((prev) => {
+        const stillExists = prev.some((img) => img.public_id === tempId);
+        if (!stillExists) {
+          URL.revokeObjectURL(previewUrl);
+          return prev;
+        }
+
+        if (!result.success) {
+          toast.error(result.error ?? "Upload failed");
+          URL.revokeObjectURL(previewUrl);
+          return prev.filter((img) => img.public_id !== tempId);
+        }
+
+        toast.success(`${file.name} uploaded`);
+        URL.revokeObjectURL(previewUrl);
+        return prev.map((img) =>
           img.public_id === tempId
             ? {
                 secure_url: result.data.secure_url,
@@ -99,9 +119,8 @@ export function ImageUpload({
                 resource_type: result.data.resource_type,
               }
             : img
-        )
-      );
-      URL.revokeObjectURL(previewUrl);
+        );
+      });
     }
   }
 
@@ -125,8 +144,11 @@ export function ImageUpload({
   );
 
   async function handleDelete(img: UploadedImage, index: number) {
-    if (img.uploading) return;
+    // Remove from UI immediately (cancels in-progress uploads too)
     onChange(value.filter((_, i) => i !== index));
+    if (img.previewUrl) URL.revokeObjectURL(img.previewUrl);
+    // Only call Cloudinary delete if the file was fully uploaded (has a real public_id)
+    if (img.uploading) return;
     const resourceType = img.resource_type === "video" ? "video" : "image";
     const result = await deleteImage(img.public_id, resourceType);
     if (!result.success) toast.error("Could not delete: " + result.error);
@@ -163,8 +185,8 @@ export function ImageUpload({
           </p>
           <p className="text-xs text-gray-400 mt-1">
             {acceptVideo
-              ? `Images (JPEG/PNG/WebP ≤${MAX_IMAGE_MB}MB) · Videos (MP4/WebM ≤${MAX_VIDEO_MB}MB)`
-              : `JPEG, PNG, WebP · max ${MAX_IMAGE_MB}MB`}{" "}
+              ? `Images (JPEG/PNG/WebP ≤${MAX_IMAGE_MB}MB) · Videos (MP4/WebM ≤${MAX_VIDEO_MB}MB) `
+              : `JPEG, PNG, WebP · max ${MAX_IMAGE_MB}MB `}
             · up to {maxFiles} files
           </p>
           <input
@@ -230,28 +252,26 @@ export function ImageUpload({
                   </div>
                 )}
 
-                {!img.uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
-                    {i !== 0 && (
-                      <button
-                        type="button"
-                        onClick={() => moveToFirst(i)}
-                        title="Set as main"
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-brand-gold hover:text-white transition-colors"
-                      >
-                        <Crown className="h-3.5 w-3.5" />
-                      </button>
-                    )}
+                <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
+                  {i !== 0 && !img.uploading && (
                     <button
                       type="button"
-                      onClick={() => handleDelete(img, i)}
-                      title="Delete"
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-red-500 hover:text-white transition-colors"
+                      onClick={() => moveToFirst(i)}
+                      title="Set as main"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-brand-gold hover:text-white transition-colors"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Crown className="h-3.5 w-3.5" />
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(img, i)}
+                    title={img.uploading ? "Cancel upload" : "Delete"}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow hover:bg-red-500 hover:text-white transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             );
           })}

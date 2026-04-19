@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
-import { ArrowUpDown, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MATERIALS } from "@/utils/constants";
 
@@ -21,35 +21,38 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
 ];
 
-export function MobileFilterBar() {
+interface FilterTopBarProps {
+  totalCount: number;
+}
+
+export function FilterTopBar({ totalCount }: FilterTopBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [footerVisible, setFooterVisible] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const lenis = (window as unknown as Record<string, unknown>).__lenis as
       | { stop: () => void; start: () => void }
       | undefined;
     if (!lenis) return;
-    if (sortOpen || filtersOpen) lenis.stop();
+    if (filtersOpen) lenis.stop();
     else lenis.start();
     return () => lenis.start();
-  }, [sortOpen, filtersOpen]);
+  }, [filtersOpen]);
 
   useEffect(() => {
-    const footer = document.querySelector("footer");
-    if (!footer) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFooterVisible(entry.isIntersecting),
-      { threshold: 0.05 }
-    );
-    observer.observe(footer);
-    return () => observer.disconnect();
-  }, []);
+    function handleClickOutside(e: MouseEvent) {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setSortOpen(false);
+      }
+    }
+    if (sortOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [sortOpen]);
 
   const currentSort = searchParams.get("sort") ?? "featured";
   const currentMaterial = searchParams.get("material");
@@ -58,6 +61,8 @@ export function MobileFilterBar() {
 
   const sortActive = currentSort !== "featured";
   const filtersActive = !!(currentMaterial || currentPriceMin || currentPriceMax);
+
+  const currentSortLabel = SORT_OPTIONS.find((o) => o.value === currentSort)?.label ?? "Featured";
 
   function setParam(key: string, value: string | null) {
     const params = new URLSearchParams(searchParams.toString());
@@ -91,67 +96,62 @@ export function MobileFilterBar() {
 
   return (
     <>
-      {/* Floating pill */}
-      <div className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-40 lg:hidden flex items-stretch bg-white rounded-full shadow-lg border border-gray-200 overflow-hidden transition-opacity duration-200 ${footerVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-        {/* Sort button */}
-        <button
-          onClick={() => setSortOpen(true)}
-          className="relative flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <ArrowUpDown className="h-4 w-4" />
-          Sort
-          {sortActive && (
-            <span className="absolute top-2 right-3 h-1.5 w-1.5 rounded-full bg-brand-navy" />
-          )}
-        </button>
-
-        {/* Divider */}
-        <div className="w-px bg-gray-200 self-stretch" />
-
+      {/* Desktop inline top bar */}
+      <div className="hidden lg:flex items-center gap-3 py-3 border-b border-brand-border mb-6">
         {/* Filters button */}
         <button
           onClick={() => setFiltersOpen(true)}
-          className="relative flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="relative flex items-center gap-1.5 px-4 py-2 rounded-md border border-brand-border text-sm font-medium text-brand-navy hover:bg-brand-cream transition-colors"
         >
           <SlidersHorizontal className="h-4 w-4" />
           Filters
           {filtersActive && (
-            <span className="absolute top-2 right-3 h-1.5 w-1.5 rounded-full bg-brand-navy" />
+            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand-navy" />
           )}
         </button>
-      </div>
 
-      {/* Sort bottom sheet (mobile) */}
-      <Sheet open={sortOpen} onOpenChange={setSortOpen}>
-        <SheetContent side="bottom" showCloseButton={false} className="rounded-t-2xl px-0 pb-safe max-h-[60vh]">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="font-poppins text-base font-semibold text-brand-navy">Sort By</h2>
-            <button onClick={() => setSortOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">Done</button>
-          </div>
-          <div className="py-2">
-            {SORT_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                disabled={isPending}
-                onClick={() => {
-                  setParam("sort", opt.value === "featured" ? null : opt.value);
-                  setSortOpen(false);
-                }}
-                className={`w-full flex items-center justify-between px-5 py-3.5 text-sm transition-colors ${
-                  currentSort === opt.value
-                    ? "text-brand-navy font-semibold bg-brand-cream"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {opt.label}
-                {currentSort === opt.value && (
-                  <span className="h-2 w-2 rounded-full bg-brand-navy" />
-                )}
-              </button>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
+        {/* Product count */}
+        <span className="flex-1 text-center text-sm text-brand-text-muted">
+          {totalCount} {totalCount === 1 ? "product" : "products"}
+        </span>
+
+        {/* Sort dropdown */}
+        <div ref={sortRef} className="relative">
+          <button
+            onClick={() => setSortOpen((v) => !v)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
+              sortActive
+                ? "border-brand-navy text-brand-navy bg-brand-cream"
+                : "border-brand-border text-brand-navy hover:bg-brand-cream"
+            }`}
+          >
+            Sort: {currentSortLabel}
+            <ChevronDown className={`h-4 w-4 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {sortOpen && (
+            <div className="absolute right-0 top-full mt-1 z-50 w-52 rounded-md border border-gray-200 bg-white shadow-lg overflow-hidden">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  disabled={isPending}
+                  onClick={() => {
+                    setParam("sort", opt.value === "featured" ? null : opt.value);
+                    setSortOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors ${
+                    currentSort === opt.value
+                      ? "bg-brand-navy text-white font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Filters left sheet */}
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -169,7 +169,6 @@ export function MobileFilterBar() {
           </div>
 
           <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6" data-lenis-prevent>
-            {/* Price Range */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Price Range</p>
               <div className="grid grid-cols-2 gap-2">
@@ -193,7 +192,6 @@ export function MobileFilterBar() {
               </div>
             </div>
 
-            {/* Material */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Material</p>
               <div className="flex flex-wrap gap-2">
@@ -218,7 +216,6 @@ export function MobileFilterBar() {
             </div>
           </div>
 
-          {/* Show Results */}
           <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
             <button
               onClick={() => setFiltersOpen(false)}

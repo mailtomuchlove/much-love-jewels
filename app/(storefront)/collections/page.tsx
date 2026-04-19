@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
-import { ProductFilters } from "@/components/storefront/product-filters";
+import { FilterTopBar } from "@/components/storefront/filter-top-bar";
 import { MobileFilterBar } from "@/components/storefront/mobile-filter-bar";
 import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export const revalidate = 3600;
 
@@ -55,38 +54,34 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
     <div className="container-site py-8 md:py-12">
       <div className="mb-8">
         <h1 className="heading-h1">All Collections</h1>
-        <p className="text-brand-text-muted mt-2">
+        <p className="text-brand-text-muted mt-2 lg:hidden">
           {count ?? 0} {(count ?? 0) === 1 ? "piece" : "pieces"} found
         </p>
       </div>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
-        <Suspense fallback={<Skeleton className="h-64 w-52 flex-shrink-0 hidden lg:block" />}>
-          <ProductFilters className="hidden lg:block w-56 flex-shrink-0" />
-        </Suspense>
+      <Suspense fallback={null}>
+        <FilterTopBar totalCount={count ?? 0} />
+      </Suspense>
 
-        <div className="flex-1 min-w-0">
-          <ProductGrid products={(products ?? []) as never} />
+      <ProductGrid products={(products ?? []) as never} />
 
-          {totalPages > 1 && (
-            <div className="mt-10 flex justify-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <a
-                  key={p}
-                  href={`?${new URLSearchParams({ ...params, page: String(p) })}`}
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                    p === page
-                      ? "bg-brand-navy text-white"
-                      : "border border-brand-border text-brand-text hover:bg-brand-cream"
-                  }`}
-                >
-                  {p}
-                </a>
-              ))}
-            </div>
-          )}
+      {totalPages > 1 && (
+        <div className="mt-10 flex justify-center gap-2">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <a
+              key={p}
+              href={`?${new URLSearchParams({ ...params, page: String(p) })}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                p === page
+                  ? "bg-brand-navy text-white"
+                  : "border border-brand-border text-brand-text hover:bg-brand-cream"
+              }`}
+            >
+              {p}
+            </a>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Mobile floating sort/filter pill */}
       <Suspense fallback={null}>

@@ -6,8 +6,8 @@ import type { ActionResult } from "@/types";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;   // 5 MB
-const MAX_VIDEO_BYTES = 50 * 1024 * 1024;  // 50 MB
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;   // 10 MB
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;  // 100 MB
 
 type UploadResult = { secure_url: string; public_id: string; resource_type: string };
 
@@ -33,10 +33,10 @@ export async function uploadProductImage(
     return { success: false, error: "Only JPEG, PNG, WebP images or MP4/WebM videos are allowed" };
   }
   if (isImage && file.size > MAX_IMAGE_BYTES) {
-    return { success: false, error: "Image must be smaller than 5 MB" };
+    return { success: false, error: "Image must be smaller than 10 MB" };
   }
   if (isVideo && file.size > MAX_VIDEO_BYTES) {
-    return { success: false, error: "Video must be smaller than 50 MB" };
+    return { success: false, error: "Video must be smaller than 100 MB" };
   }
 
   // Build organised subfolder: category-slug/product-slug
@@ -79,7 +79,7 @@ export async function uploadCategoryImage(
     return { success: false, error: "Only JPEG, PNG, or WebP images are allowed" };
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    return { success: false, error: "Image must be smaller than 5 MB" };
+    return { success: false, error: "Image must be smaller than 10 MB" };
   }
 
   const categoryName = (formData.get("category_name") as string | null) ?? "";
@@ -116,10 +116,10 @@ export async function uploadHeroBannerImage(
     return { success: false, error: "Only JPEG, PNG, WebP images or MP4/WebM videos are allowed" };
   }
   if (isImage && file.size > MAX_IMAGE_BYTES) {
-    return { success: false, error: "Image must be smaller than 5 MB" };
+    return { success: false, error: "Image must be smaller than 10 MB" };
   }
   if (isVideo && file.size > MAX_VIDEO_BYTES) {
-    return { success: false, error: "Video must be smaller than 50 MB" };
+    return { success: false, error: "Video must be smaller than 100 MB" };
   }
 
   try {

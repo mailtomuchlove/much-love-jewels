@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
-import { ProductFilters } from "@/components/storefront/product-filters";
+import { FilterTopBar } from "@/components/storefront/filter-top-bar";
 import { MobileFilterBar } from "@/components/storefront/mobile-filter-bar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 
 export const revalidate = 3600;
@@ -131,58 +130,32 @@ export default async function CollectionPage({
         <div className="divider-gold mt-4" />
       </div>
 
-      <div className="flex flex-col gap-8 lg:flex-row">
-        {/* Filters sidebar — desktop */}
-        <Suspense
-          fallback={
-            <div className="hidden lg:block w-56 flex-shrink-0 space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
-              ))}
-            </div>
-          }
-        >
-          <ProductFilters className="hidden lg:block w-56 flex-shrink-0" />
-        </Suspense>
+      <Suspense fallback={null}>
+        <FilterTopBar totalCount={count ?? 0} />
+      </Suspense>
 
-        {/* Products */}
-        <div className="flex-1 min-w-0">
-          {/* Count */}
-          {count !== null && (
-            <p className="text-sm text-brand-text-muted mb-5">
-              {count} product{count !== 1 ? "s" : ""}
-            </p>
-          )}
+      <ProductGrid
+        products={(products ?? []) as never}
+        emptyMessage={`No products found in ${category.name}.`}
+      />
 
-          <ProductGrid
-            products={(products ?? []) as never}
-            emptyMessage={`No products found in ${category.name}.`}
-          />
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-10">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <a
-                  key={p}
-                  href={`?${new URLSearchParams({ ...sp, page: String(p) }).toString()}`}
-                  className={`h-9 w-9 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                    p === page
-                      ? "bg-brand-navy text-white"
-                      : "border border-brand-border text-brand-text hover:bg-brand-cream"
-                  }`}
-                >
-                  {p}
-                </a>
-              ))}
-            </div>
-          )}
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-10">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <a
+              key={p}
+              href={`?${new URLSearchParams({ ...sp, page: String(p) }).toString()}`}
+              className={`h-9 w-9 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                p === page
+                  ? "bg-brand-navy text-white"
+                  : "border border-brand-border text-brand-text hover:bg-brand-cream"
+              }`}
+            >
+              {p}
+            </a>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Mobile floating sort/filter pill */}
       <Suspense fallback={null}>

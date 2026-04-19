@@ -31,7 +31,7 @@ export default async function StorefrontLayout({
       <CartDrawer />
       <WhatsAppButton />
       <WishlistInitializer productIds={wishlistIds} />
-      <Toaster position="top-right" richColors />
+      <Toaster />
     </div>
   );
 }

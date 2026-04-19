@@ -113,8 +113,19 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     });
 
     if (!validation.success) {
-      const firstError = validation.error.issues[0];
-      toast.error(firstError?.message ?? "Please check the form fields");
+      const fieldLabels: Record<string, string> = {
+        name: "Product Name",
+        price: "Price",
+        category_id: "Category",
+        stock: "Stock",
+        slug: "Product Name",
+      };
+      const messages = validation.error.issues.map((issue) => {
+        const field = issue.path[0] as string;
+        return fieldLabels[field] ?? field;
+      });
+      const unique = [...new Set(messages)];
+      toast.error(`Please fill in: ${unique.join(", ")}`);
       return;
     }
 
