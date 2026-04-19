@@ -147,6 +147,14 @@ export function AccountClient({
   const router = useRouter();
 
   async function handleSaveProfile() {
+    if (!profileName.trim()) {
+      toast.error("Full name is required");
+      return;
+    }
+    if (profilePhone && !/^[6-9]\d{9}$/.test(profilePhone)) {
+      toast.error("Enter a valid 10-digit Indian mobile number");
+      return;
+    }
     setSavingProfile(true);
     const result = await updateProfile({ name: profileName, phone: profilePhone });
     setSavingProfile(false);
@@ -186,6 +194,13 @@ export function AccountClient({
   }
 
   async function handleSaveAddress() {
+    if (!addrForm.name.trim()) { toast.error("Full name is required"); return; }
+    if (!addrForm.phone.trim()) { toast.error("Phone number is required"); return; }
+    if (!/^[6-9]\d{9}$/.test(addrForm.phone)) { toast.error("Enter a valid 10-digit Indian mobile number"); return; }
+    if (!addrForm.line1.trim()) { toast.error("Address line 1 is required"); return; }
+    if (!addrForm.city.trim()) { toast.error("City is required"); return; }
+    if (!addrForm.state) { toast.error("State is required"); return; }
+    if (!/^\d{6}$/.test(addrForm.pincode)) { toast.error("Enter a valid 6-digit pincode"); return; }
     setSavingAddr(true);
     const result = editingAddress
       ? await updateAddress(editingAddress.id, addrForm)
@@ -282,19 +297,22 @@ export function AccountClient({
             </h2>
             <div className="space-y-4 max-w-sm">
               <div>
-                <Label className="text-xs font-medium">Full Name</Label>
+                <Label className="text-xs font-medium">Full Name <span className="text-red-500">*</span></Label>
                 <Input
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
+                  placeholder="Your full name"
+                  required
                   className="mt-1 h-10"
                 />
               </div>
               <div>
-                <Label className="text-xs font-medium">Phone</Label>
+                <Label className="text-xs font-medium">Phone <span className="text-gray-400 font-normal">(optional)</span></Label>
                 <Input
                   value={profilePhone}
                   onChange={(e) => setProfilePhone(e.target.value)}
-                  placeholder="10-digit mobile"
+                  placeholder="10-digit mobile (e.g. 9876543210)"
+                  maxLength={10}
                   className="mt-1 h-10"
                 />
               </div>
@@ -587,16 +605,16 @@ function AddressForm({ form, setForm, onSave, saving }: AddressFormProps) {
     <div className="space-y-3 pt-2">
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 sm:col-span-1">
-          <Label className="text-xs font-medium">Full Name</Label>
-          <Input value={form.name} onChange={set("name")} placeholder="Your name" className="mt-1 h-10" />
+          <Label className="text-xs font-medium">Full Name <span className="text-red-500">*</span></Label>
+          <Input value={form.name} onChange={set("name")} placeholder="Your name" required className="mt-1 h-10" />
         </div>
         <div className="col-span-2 sm:col-span-1">
-          <Label className="text-xs font-medium">Phone</Label>
-          <Input value={form.phone} onChange={set("phone")} placeholder="10-digit mobile" className="mt-1 h-10" />
+          <Label className="text-xs font-medium">Phone <span className="text-red-500">*</span></Label>
+          <Input value={form.phone} onChange={set("phone")} placeholder="10-digit mobile" maxLength={10} required className="mt-1 h-10" />
         </div>
         <div className="col-span-2">
-          <Label className="text-xs font-medium">Address Line 1</Label>
-          <Input value={form.line1} onChange={set("line1")} placeholder="House / Flat / Street" className="mt-1 h-10" />
+          <Label className="text-xs font-medium">Address Line 1 <span className="text-red-500">*</span></Label>
+          <Input value={form.line1} onChange={set("line1")} placeholder="House / Flat / Street" required className="mt-1 h-10" />
         </div>
         <div className="col-span-2">
           <Label className="text-xs font-medium">
@@ -605,21 +623,22 @@ function AddressForm({ form, setForm, onSave, saving }: AddressFormProps) {
           <Input value={form.line2} onChange={set("line2")} placeholder="Landmark / Area" className="mt-1 h-10" />
         </div>
         <div>
-          <Label className="text-xs font-medium">City</Label>
-          <Input value={form.city} onChange={set("city")} placeholder="City" className="mt-1 h-10" />
+          <Label className="text-xs font-medium">City <span className="text-red-500">*</span></Label>
+          <Input value={form.city} onChange={set("city")} placeholder="City" required className="mt-1 h-10" />
         </div>
         <div>
-          <Label className="text-xs font-medium">Pincode</Label>
+          <Label className="text-xs font-medium">Pincode <span className="text-red-500">*</span></Label>
           <Input
             value={form.pincode}
             onChange={set("pincode")}
             placeholder="6-digit pincode"
             maxLength={6}
+            required
             className="mt-1 h-10"
           />
         </div>
         <div className="col-span-2">
-          <Label className="text-xs font-medium">State</Label>
+          <Label className="text-xs font-medium">State <span className="text-red-500">*</span></Label>
           <Select value={form.state} onValueChange={(v) => setForm((p) => ({ ...p, state: v ?? "" }))}>
             <SelectTrigger className="mt-1 h-10">
               <SelectValue placeholder="Select state" />

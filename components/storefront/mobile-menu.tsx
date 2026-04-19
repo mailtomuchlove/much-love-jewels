@@ -2,15 +2,27 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface MobileMenuProps {
   navLinks: { label: string; href: string }[];
+  user: { name: string | null } | null;
 }
 
-export function MobileMenu({ navLinks }: MobileMenuProps) {
+export function MobileMenu({ navLinks, user }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setOpen(false);
+    router.push("/");
+    router.refresh();
+  }
 
   useEffect(() => {
     const lenis = (window as unknown as Record<string, unknown>).__lenis as
@@ -57,13 +69,33 @@ export function MobileMenu({ navLinks }: MobileMenuProps) {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/auth/login"
-              onClick={() => setOpen(false)}
-              className="mt-6 py-2.5 text-base font-medium text-brand-navy"
-            >
-              Sign In / Register
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/account"
+                  onClick={() => setOpen(false)}
+                  className="mt-6 flex items-center gap-2 py-2.5 text-base font-medium text-brand-navy border-b border-brand-border"
+                >
+                  <User className="h-4 w-4" />
+                  {user.name ?? "My Account"}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 py-2.5 text-base font-medium text-red-600"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={() => setOpen(false)}
+                className="mt-6 py-2.5 text-base font-medium text-brand-navy"
+              >
+                Sign In / Register
+              </Link>
+            )}
           </nav>
         </SheetContent>
       </Sheet>

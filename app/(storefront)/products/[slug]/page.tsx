@@ -54,15 +54,15 @@ export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data: product } = await supabase
+  const { data: product, error: productError } = await supabase
     .from("products")
     .select(
-      "*, categories(id, name, slug), product_variants(*), reviews(id, rating, is_approved, comment, created_at, profiles(name))"
+      "*, categories(id, name, slug), product_variants(*), reviews(id, rating, is_approved, comment, created_at)"
     )
     .eq("slug", slug)
     .single();
 
-  if (!product) notFound();
+  if (productError || !product) notFound();
 
   if (!product.is_active) {
     return (
@@ -330,7 +330,7 @@ export default async function ProductPage({ params }: PageProps) {
           <div className="mt-12">
             <h2 className="heading-h3 mb-6">Customer Reviews</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {reviews.map((review: { id: string; rating: number; comment: string | null; created_at: string; profiles: { name: string | null } | null }) => (
+              {reviews.map((review: { id: string; rating: number; comment: string | null; created_at: string }) => (
                 <div
                   key={review.id}
                   className="rounded-md border border-brand-border bg-white p-4"
@@ -353,7 +353,7 @@ export default async function ProductPage({ params }: PageProps) {
                     </p>
                   )}
                   <p className="mt-3 text-xs font-semibold text-brand-navy">
-                    {review.profiles?.name ?? "Customer"}
+                    Verified Customer
                   </p>
                 </div>
               ))}

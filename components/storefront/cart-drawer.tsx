@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
@@ -9,12 +9,20 @@ import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartUI, useGuestCart } from "@/store/cart-store";
 import { createClient } from "@/lib/supabase/client";
+import { removeFromCartByProduct, updateCartQuantityByProduct } from "@/app/actions/cart";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function CartDrawer() {
   const { isOpen, close } = useCartUI();
   const { items, addItem, removeItem, updateQuantity, getTotal, itemCount } = useGuestCart();
+  const userIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      userIdRef.current = user?.id ?? null;
+    });
+  }, []);
 
   // Stop Lenis smooth-scroll while cart is open so body overflow lock doesn't conflict
   useEffect(() => {
@@ -156,6 +164,9 @@ export function CartDrawer() {
                               <button
                                 onClick={() => {
                                   removeItem(item.product_id, item.variant_id);
+                                  if (userIdRef.current) {
+                                    removeFromCartByProduct(item.product_id, item.variant_id).catch(() => {});
+                                  }
                                   toast.success("Item removed from cart");
                                 }}
                                 className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
@@ -169,13 +180,13 @@ export function CartDrawer() {
                               {/* Quantity stepper */}
                               <div className="flex items-center gap-1 rounded-md border border-border">
                                 <button
-                                  onClick={() =>
-                                    updateQuantity(
-                                      item.product_id,
-                                      item.variant_id,
-                                      item.quantity - 1
-                                    )
-                                  }
+                                  onClick={() => {
+                                    const newQty = item.quantity - 1;
+                                    updateQuantity(item.product_id, item.variant_id, newQty);
+                                    if (userIdRef.current) {
+                                      updateCartQuantityByProduct(item.product_id, item.variant_id, newQty).catch(() => {});
+                                    }
+                                  }}
                                   className="flex h-7 w-7 items-center justify-center text-gray-600 hover:text-brand-navy transition-colors"
                                   aria-label="Decrease quantity"
                                 >
@@ -185,13 +196,13 @@ export function CartDrawer() {
                                   {item.quantity}
                                 </span>
                                 <button
-                                  onClick={() =>
-                                    updateQuantity(
-                                      item.product_id,
-                                      item.variant_id,
-                                      item.quantity + 1
-                                    )
-                                  }
+                                  onClick={() => {
+                                    const newQty = item.quantity + 1;
+                                    updateQuantity(item.product_id, item.variant_id, newQty);
+                                    if (userIdRef.current) {
+                                      updateCartQuantityByProduct(item.product_id, item.variant_id, newQty).catch(() => {});
+                                    }
+                                  }}
                                   className="flex h-7 w-7 items-center justify-center text-gray-600 hover:text-brand-navy transition-colors"
                                   aria-label="Increase quantity"
                                 >

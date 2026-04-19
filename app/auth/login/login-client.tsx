@@ -116,7 +116,7 @@ export default function LoginClient() {
             {mode === "signup" && (
               <div>
                 <Label htmlFor="name" className="text-sm font-medium">
-                  Full Name
+                  Full Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
@@ -132,7 +132,7 @@ export default function LoginClient() {
 
             <div>
               <Label htmlFor="email" className="text-sm font-medium">
-                Email
+                Email <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="email"
@@ -148,7 +148,10 @@ export default function LoginClient() {
             {mode !== "forgot" && (
               <div>
                 <Label htmlFor="password" className="text-sm font-medium">
-                  Password
+                  Password <span className="text-red-500">*</span>
+                  {mode === "signup" && (
+                    <span className="text-xs text-gray-400 font-normal ml-1">(min. 6 characters)</span>
+                  )}
                 </Label>
                 <Input
                   id="password"

@@ -243,6 +243,72 @@ export async function mergeCartOnLogin(
   return { success: true, data: undefined };
 }
 
+export async function removeFromCartByProduct(
+  productId: string,
+  variantId: string | null
+): Promise<ActionResult<void>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  if (variantId) {
+    await supabase
+      .from("cart_items")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("product_id", productId)
+      .eq("variant_id", variantId);
+  } else {
+    await supabase
+      .from("cart_items")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("product_id", productId)
+      .is("variant_id", null);
+  }
+
+  revalidatePath("/", "layout");
+  return { success: true, data: undefined };
+}
+
+export async function updateCartQuantityByProduct(
+  productId: string,
+  variantId: string | null,
+  quantity: number
+): Promise<ActionResult<void>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  if (quantity <= 0) return removeFromCartByProduct(productId, variantId);
+  if (quantity > MAX_QTY_PER_ITEM) {
+    return { success: false, error: `Maximum ${MAX_QTY_PER_ITEM} per item allowed` };
+  }
+
+  if (variantId) {
+    await supabase
+      .from("cart_items")
+      .update({ quantity })
+      .eq("user_id", user.id)
+      .eq("product_id", productId)
+      .eq("variant_id", variantId);
+  } else {
+    await supabase
+      .from("cart_items")
+      .update({ quantity })
+      .eq("user_id", user.id)
+      .eq("product_id", productId)
+      .is("variant_id", null);
+  }
+
+  revalidatePath("/", "layout");
+  return { success: true, data: undefined };
+}
+
 /**
  * Fetch cart for current user (server-side).
  */

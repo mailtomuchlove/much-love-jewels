@@ -11,7 +11,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "./image-upload";
@@ -28,11 +27,13 @@ interface ProductFormProps {
   product?: Product;
 }
 
-function Card({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
+function Card({ title, badge, required, children }: { title: string; badge?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100 bg-gray-50">
-        <h3 className="font-poppins text-sm font-semibold text-gray-800">{title}</h3>
+        <h3 className="font-poppins text-sm font-semibold text-gray-800">
+          {title}{required && <span className="text-red-500 ml-0.5">*</span>}
+        </h3>
         {badge && <span className="ml-auto text-xs text-gray-400 font-normal">{badge}</span>}
       </div>
       <div className="p-5 space-y-4">{children}</div>
@@ -159,7 +160,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         <div className="lg:col-span-7 space-y-5">
 
           {/* Images */}
-          <Card title="Product Images / Videos">
+          <Card title="Product Images / Videos" required>
             <ImageUpload
               value={images}
               onChange={setImages}
@@ -199,7 +200,11 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                 onValueChange={(v) => v && setField("category_id", v)}
               >
                 <SelectTrigger className="h-10 w-full">
-                  <SelectValue placeholder="Select a category" />
+                  <span className={form.category_id ? "text-sm" : "text-sm text-muted-foreground"}>
+                    {form.category_id
+                      ? (categories.find((c) => c.id === form.category_id)?.name ?? "Unknown")
+                      : "Select a category"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (

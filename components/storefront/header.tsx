@@ -39,7 +39,10 @@ export async function Header() {
         <div className="flex h-[60px] items-center justify-between md:h-[72px]">
           {/* Mobile menu trigger — visible only on mobile, sits before logo */}
           <div className="md:hidden">
-            <MobileMenu navLinks={navLinks} />
+            <MobileMenu
+              navLinks={navLinks}
+              user={user ? { name: (user.user_metadata?.name as string | undefined) ?? user.email ?? null } : null}
+            />
           </div>
 
           {/* Logo */}
