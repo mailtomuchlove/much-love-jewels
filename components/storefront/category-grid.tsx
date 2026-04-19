@@ -18,10 +18,8 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
         </div>
 
         {/* ── Mobile: horizontal scroll ── */}
-        <div className="relative lg:hidden">
-          {/* Fade hint on right edge */}
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-brand-cream to-transparent z-10" />
-          <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4">
+        <div className="lg:hidden">
+          <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 pr-8">
             {categories.map((cat, i) => (
               <Link
                 key={cat.id}
