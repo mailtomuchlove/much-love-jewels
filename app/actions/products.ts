@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { rupeesToPaise, generateSlug } from "@/lib/utils";
 import { isAllowedImageUrl } from "@/lib/image-utils";
+import { createRazorpayRefund } from "@/lib/razorpay";
 import type { ActionResult, Database } from "@/types";
 
 function validateImageUrls(urls: string[]): string | null {
@@ -290,6 +291,58 @@ export async function updateOrderStatus(
     .eq("id", orderId);
 
   if (error) return { success: false, error: error.message };
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { success: true, data: undefined };
+}
+
+export async function refundOrder(orderId: string): Promise<ActionResult<void>> {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id, payment_id, payment_status, status, total_paise, order_items(product_id, variant_id, quantity)")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (!order) return { success: false, error: "Order not found" };
+  if (order.payment_status !== "paid") return { success: false, error: "Order has not been paid" };
+  if (order.status === "refunded") return { success: false, error: "Order is already refunded" };
+  if (!order.payment_id) return { success: false, error: "No payment ID on record — cannot process refund" };
+
+  const razorpayConfigured =
+    process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_KEY_ID.includes("xxxx");
+
+  if (razorpayConfigured) {
+    try {
+      await createRazorpayRefund(order.payment_id, order.total_paise);
+    } catch (err) {
+      return { success: false, error: `Razorpay refund failed: ${(err as Error).message}` };
+    }
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "refunded", payment_status: "refunded" })
+    .eq("id", orderId);
+
+  if (error) return { success: false, error: error.message };
+
+  // Restore stock for each item
+  const items = order.order_items as Array<{ product_id: string; variant_id: string | null; quantity: number }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabaseAny = supabase as any;
+  await Promise.allSettled(
+    items.map((item) =>
+      supabaseAny.rpc("restore_stock", {
+        p_product_id: item.product_id,
+        p_quantity: item.quantity,
+        p_variant_id: item.variant_id ?? null,
+      })
+    )
+  );
 
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderId}`);

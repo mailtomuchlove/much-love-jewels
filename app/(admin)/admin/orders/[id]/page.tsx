@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { OrderStatusSelect } from "./order-status-select";
+import { RefundButton } from "./refund-button";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Order Detail | Admin" };
@@ -83,7 +84,16 @@ export default async function AdminOrderDetailPage({ params }: OrderDetailPagePr
         <h2 className="font-poppins text-sm font-semibold text-gray-800 mb-3">
           Update Order Status
         </h2>
-        <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
+        <div className="flex items-center gap-3 flex-wrap">
+          <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
+          {order.payment_status === "paid" && order.status !== "refunded" && (
+            <RefundButton
+              orderId={order.id}
+              orderNumber={order.order_number}
+              totalFormatted={formatPrice(order.total_paise)}
+            />
+          )}
+        </div>
       </div>
 
       {/* Order items */}
