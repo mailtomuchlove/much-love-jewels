@@ -83,6 +83,7 @@ export interface Database {
           is_featured: boolean;
           meta_title: string | null;
           meta_description: string | null;
+          product_code: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -103,6 +104,7 @@ export interface Database {
           is_featured?: boolean;
           meta_title?: string | null;
           meta_description?: string | null;
+          product_code?: string | null;
         };
         Update: {
           name?: string;
@@ -120,6 +122,7 @@ export interface Database {
           is_featured?: boolean;
           meta_title?: string | null;
           meta_description?: string | null;
+          product_code?: string | null;
           updated_at?: string;
         };
         Relationships: [

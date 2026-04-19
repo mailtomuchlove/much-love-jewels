@@ -101,6 +101,43 @@ export async function uploadCategoryImage(
   }
 }
 
+export async function uploadHeroBannerImage(
+  formData: FormData
+): Promise<ActionResult<UploadResult>> {
+  await requireAdmin();
+
+  const file = formData.get("file") as File | null;
+  if (!file) return { success: false, error: "No file provided" };
+
+  const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
+  const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+
+  if (!isImage && !isVideo) {
+    return { success: false, error: "Only JPEG, PNG, WebP images or MP4/WebM videos are allowed" };
+  }
+  if (isImage && file.size > MAX_IMAGE_BYTES) {
+    return { success: false, error: "Image must be smaller than 5 MB" };
+  }
+  if (isVideo && file.size > MAX_VIDEO_BYTES) {
+    return { success: false, error: "Video must be smaller than 50 MB" };
+  }
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const result = await uploadToCloudinary(buffer, "hero-banners", "live");
+    return {
+      success: true,
+      data: {
+        secure_url: result.secure_url,
+        public_id: result.public_id,
+        resource_type: result.resource_type,
+      },
+    };
+  } catch (err) {
+    return { success: false, error: (err as Error).message ?? "Upload failed" };
+  }
+}
+
 export async function deleteImage(
   publicId: string,
   resourceType: "image" | "video" | "raw" = "image"

@@ -218,6 +218,11 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
           {/* Pricing & Stock */}
           <Card title="Pricing & Stock">
+            <Field label="Product ID" hint="Auto-generated on save, cannot be changed">
+              <div className="h-10 flex items-center px-3 rounded-md border border-input bg-gray-50 text-sm font-mono text-gray-500 tracking-wider">
+                {product?.product_code ?? <span className="text-gray-400 italic font-sans tracking-normal">Auto-assigned on save</span>}
+              </div>
+            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Price (₹)" required>
                 <Input

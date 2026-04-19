@@ -70,6 +70,39 @@ export async function deleteFromCloudinary(
 }
 
 /**
+ * Rename/move a Cloudinary asset to a new public_id path.
+ * Used to reorganise assets (e.g. move to archived/, backup/).
+ */
+export async function renameCloudinaryAsset(
+  fromPublicId: string,
+  toPublicId: string,
+  resourceType: "image" | "video" | "raw" = "image"
+): Promise<{ secure_url: string; public_id: string }> {
+  const result = await cloudinary.uploader.rename(fromPublicId, toPublicId, {
+    resource_type: resourceType,
+    overwrite: true,
+    invalidate: true,
+  });
+  return { secure_url: result.secure_url as string, public_id: result.public_id as string };
+}
+
+/**
+ * Extract the Cloudinary public_id from a full secure_url.
+ * Handles URLs with or without version segments and transformations.
+ * Returns null if the URL doesn't match expected Cloudinary format.
+ */
+export function extractPublicId(url: string): string | null {
+  try {
+    // Match: /upload/ optionally followed by transforms or version, then the public_id
+    const match = url.match(/\/upload\/(?:[^/]+\/)*v\d+\/(.+?)(?:\.[a-z0-9]+)?$/) ??
+                  url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z0-9]+)?$/);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Build an optimised Cloudinary image URL.
  */
 export function cloudinaryUrl(

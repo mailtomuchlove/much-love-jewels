@@ -80,12 +80,48 @@ export async function deleteCategory(categoryId: string): Promise<ActionResult<v
   await requireAdmin();
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("categories")
-    .delete()
-    .eq("id", categoryId);
+  // Fetch category slug + all product images before deleting
+  const [{ data: category }, { data: products }] = await Promise.all([
+    supabase.from("categories").select("slug").eq("id", categoryId).single(),
+    supabase.from("products").select("id, image_public_ids").eq("category_id", categoryId),
+  ]);
 
+  const { error } = await supabase.from("categories").delete().eq("id", categoryId);
   if (error) return { success: false, error: error.message };
+
+  // Best-effort: move product images to backup/{category-slug}/ in Cloudinary
+  if (category?.slug && products?.length) {
+    const { renameCloudinaryAsset } = await import("@/lib/cloudinary");
+    const backupPrefix = `muchlovejewels/backup/${category.slug}`;
+
+    await Promise.allSettled(
+      products.flatMap((p) =>
+        (p.image_public_ids ?? []).map(async (oldId: string) => {
+          const filename = oldId.split("/").pop()!;
+          const newId = `${backupPrefix}/${filename}`;
+          try {
+            const result = await renameCloudinaryAsset(oldId, newId, "image");
+            // Update product row with new URL
+            await supabase
+              .from("products")
+              .update({
+                images: (await supabase.from("products").select("images").eq("id", p.id).single())
+                  .data?.images?.map((url: string) =>
+                    url.includes(filename) ? result.secure_url : url
+                  ) ?? [],
+                image_public_ids: (await supabase.from("products").select("image_public_ids").eq("id", p.id).single())
+                  .data?.image_public_ids?.map((id: string) =>
+                    id === oldId ? result.public_id : id
+                  ) ?? [],
+              })
+              .eq("id", p.id);
+          } catch {
+            try { await renameCloudinaryAsset(oldId, `${backupPrefix}/${filename}`, "video"); } catch { /* ignore */ }
+          }
+        })
+      )
+    );
+  }
 
   revalidatePath("/admin/categories");
   return { success: true, data: undefined };

@@ -103,8 +103,31 @@ export async function updateHeroBanner(
 export async function deleteHeroBanner(id: string) {
   await requireAdmin();
   const supabase = (await createClient()) as unknown as AnyClient;
+
+  // Fetch image_src before deleting so we can archive it
+  const { data: banner } = await supabase
+    .from("hero_banners")
+    .select("image_src")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase.from("hero_banners").delete().eq("id", id);
   if (error) throw new Error(error.message);
+
+  // Best-effort: move banner image to hero-banners/archived/
+  if (banner?.image_src) {
+    try {
+      const { extractPublicId, renameCloudinaryAsset } = await import("@/lib/cloudinary");
+      const publicId = extractPublicId(banner.image_src);
+      if (publicId) {
+        const filename = publicId.split("/").pop()!;
+        const newId = `muchlovejewels/hero-banners/archived/${filename}`;
+        const resourceType = banner.image_src.includes("/video/") ? "video" : "image";
+        await renameCloudinaryAsset(publicId, newId, resourceType);
+      }
+    } catch { /* ignore — delete already succeeded */ }
+  }
+
   revalidatePath("/");
   revalidatePath("/admin/hero");
 }
