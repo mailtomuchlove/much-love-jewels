@@ -16,6 +16,9 @@ interface RazorpayButtonProps {
   userPhone?: string;
 }
 
+const RAZORPAY_CONFIGURED = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
+  !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes("xxxx");
+
 export function RazorpayButton({
   addressId,
   userName,
@@ -24,6 +27,16 @@ export function RazorpayButton({
 }: RazorpayButtonProps) {
   const [loading, setLoading] = useState(false);
   const { loaded, openRazorpay } = useRazorpay();
+
+  if (!RAZORPAY_CONFIGURED) {
+    return (
+      <div className="w-full h-12 flex items-center justify-center rounded-lg bg-gray-100 border border-dashed border-gray-300">
+        <p className="text-sm text-gray-500 font-medium">
+          Online payments coming soon — contact us via WhatsApp to order
+        </p>
+      </div>
+    );
+  }
   const router = useRouter();
   const { clearCart } = useGuestCart();
 

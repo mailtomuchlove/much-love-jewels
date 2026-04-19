@@ -141,7 +141,15 @@ export async function createOrder(
     return { success: false, error: itemsError.message };
   }
 
-  // 6. Create Razorpay order
+  // 6. Create Razorpay order (skip if not configured)
+  const razorpayConfigured = process.env.RAZORPAY_KEY_ID &&
+    !process.env.RAZORPAY_KEY_ID.includes("xxxx");
+
+  if (!razorpayConfigured) {
+    await supabase.from("orders").delete().eq("id", order.id);
+    return { success: false, error: "Payment gateway not configured yet." };
+  }
+
   let rzpOrder: { id: string };
   try {
     rzpOrder = await razorpay.orders.create({
