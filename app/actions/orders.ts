@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
-import { razorpay, verifyRazorpaySignature } from "@/lib/razorpay";
+import { createRazorpayOrder, verifyRazorpaySignature } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { SHIPPING_FREE_THRESHOLD_PAISE, SHIPPING_CHARGE_PAISE } from "@/utils/constants";
 import { checkOrderRateLimit } from "@/lib/ratelimit";
@@ -152,11 +152,7 @@ export async function createOrder(
 
   let rzpOrder: { id: string };
   try {
-    rzpOrder = await razorpay.orders.create({
-      amount: totalPaise,
-      currency: "INR",
-      receipt: orderNumber,
-    });
+    rzpOrder = await createRazorpayOrder(totalPaise, "INR", orderNumber);
   } catch (err) {
     await supabase.from("orders").delete().eq("id", order.id);
     return {
