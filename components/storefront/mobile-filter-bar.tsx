@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { ArrowUpDown, SlidersHorizontal } from "lucide-react";
@@ -28,6 +28,18 @@ export function MobileFilterBar() {
   const [isPending, startTransition] = useTransition();
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
+
+  useEffect(() => {
+    const footer = document.querySelector("footer");
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0.05 }
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   const currentSort = searchParams.get("sort") ?? "featured";
   const currentMaterial = searchParams.get("material");
@@ -70,7 +82,7 @@ export function MobileFilterBar() {
   return (
     <>
       {/* Floating pill */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 lg:hidden flex items-stretch bg-white rounded-full shadow-lg border border-gray-200 overflow-hidden">
+      <div className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-40 lg:hidden flex items-stretch bg-white rounded-full shadow-lg border border-gray-200 overflow-hidden transition-opacity duration-200 ${footerVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         {/* Sort button */}
         <button
           onClick={() => setSortOpen(true)}
