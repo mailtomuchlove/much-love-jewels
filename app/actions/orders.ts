@@ -240,11 +240,24 @@ export async function verifyPayment(
   if (updatedOrder) {
     const { data: orderItems } = await supabase
       .from("order_items")
-      .select("product_id, variant_id, quantity")
+      .select("product_id, variant_id, quantity, product_name, products(stock), product_variants(stock)")
       .eq("order_id", input.orderId);
 
     if (orderItems) {
+      const oversold: string[] = [];
+
       for (const item of orderItems) {
+        const product = item.products as { stock: number } | null;
+        const variant = item.product_variants as { stock: number } | null;
+        const available = variant ? variant.stock : (product?.stock ?? 0);
+
+        if (available < item.quantity) {
+          // Payment captured but stock is gone — flag for admin, skip decrement
+          oversold.push(item.product_name);
+          console.error(`[OVERSELL] order=${input.orderId} product=${item.product_id} available=${available} needed=${item.quantity}`);
+          continue;
+        }
+
         try {
           await supabase.rpc("decrement_stock", {
             p_product_id: item.product_id,
@@ -252,9 +265,16 @@ export async function verifyPayment(
             p_variant_id: item.variant_id ?? null,
           });
         } catch (err) {
-          // Log but don't fail — order is already paid
+          oversold.push(item.product_name);
           console.error("Stock decrement failed:", item.product_id, err);
         }
+      }
+
+      if (oversold.length > 0) {
+        await supabase
+          .from("orders")
+          .update({ admin_notes: `⚠️ Oversold items (needs manual fulfillment): ${oversold.join(", ")}` })
+          .eq("id", input.orderId);
       }
     }
   }

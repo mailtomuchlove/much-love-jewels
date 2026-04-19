@@ -115,11 +115,23 @@ export async function POST(request: NextRequest) {
   if (updatedOrder) {
     const { data: orderItems } = await supabase
       .from("order_items")
-      .select("product_id, variant_id, quantity")
+      .select("product_id, variant_id, quantity, product_name, products(stock), product_variants(stock)")
       .eq("order_id", order.id);
 
     if (orderItems) {
+      const oversold: string[] = [];
+
       for (const item of orderItems) {
+        const product = item.products as { stock: number } | null;
+        const variant = item.product_variants as { stock: number } | null;
+        const available = variant ? variant.stock : (product?.stock ?? 0);
+
+        if (available < item.quantity) {
+          oversold.push(item.product_name);
+          console.error(`[webhook][OVERSELL] order=${order.id} product=${item.product_id} available=${available} needed=${item.quantity}`);
+          continue;
+        }
+
         try {
           await supabase.rpc("decrement_stock", {
             p_product_id: item.product_id,
@@ -127,9 +139,16 @@ export async function POST(request: NextRequest) {
             p_variant_id: item.variant_id ?? null,
           });
         } catch (err) {
-          // Log but do not fail — payment already captured
+          oversold.push(item.product_name);
           console.error("[webhook] Stock decrement failed:", item.product_id, err);
         }
+      }
+
+      if (oversold.length > 0) {
+        await supabase
+          .from("orders")
+          .update({ admin_notes: `⚠️ Oversold items (needs manual fulfillment): ${oversold.join(", ")}` })
+          .eq("id", order.id);
       }
     }
   }
