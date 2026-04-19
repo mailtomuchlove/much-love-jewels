@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -11,6 +11,16 @@ interface MobileMenuProps {
 
 export function MobileMenu({ navLinks }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const lenis = (window as Record<string, unknown>).__lenis as
+      | { stop: () => void; start: () => void }
+      | undefined;
+    if (!lenis) return;
+    if (open) lenis.stop();
+    else lenis.start();
+    return () => lenis.start();
+  }, [open]);
 
   return (
     <>

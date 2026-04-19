@@ -16,6 +16,17 @@ export function CartDrawer() {
   const { isOpen, close } = useCartUI();
   const { items, addItem, removeItem, updateQuantity, getTotal, itemCount } = useGuestCart();
 
+  // Stop Lenis smooth-scroll while cart is open so body overflow lock doesn't conflict
+  useEffect(() => {
+    const lenis = (window as Record<string, unknown>).__lenis as
+      | { stop: () => void; start: () => void }
+      | undefined;
+    if (!lenis) return;
+    if (isOpen) lenis.stop();
+    else lenis.start();
+    return () => lenis.start();
+  }, [isOpen]);
+
   // Hydrate items that were stored without product data (existing localStorage carts)
   useEffect(() => {
     if (!isOpen) return;
@@ -82,7 +93,7 @@ export function CartDrawer() {
             </div>
 
             {/* Items */}
-            <div className="flex-1 overflow-y-auto px-4 py-3">
+            <div className="flex-1 overflow-y-auto px-4 py-3" data-lenis-prevent>
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <ShoppingBag className="mb-4 h-12 w-12 text-gray-200" />

@@ -54,13 +54,6 @@ export function SearchBar({ initialQuery = "", autoFocus = false, className }: S
     if (q.length >= 1) router.push(`/search?q=${encodeURIComponent(q)}`);
   }
 
-  // Clicking the animated cycling word navigates directly to that search
-  function handleSuggestionClick(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    router.push(`/search?q=${encodeURIComponent(suggestions[cycleIndex])}`);
-  }
-
   const showPlaceholder = !focused && !query;
   const currentWord = suggestions[cycleIndex] ?? "";
 
@@ -92,13 +85,12 @@ export function SearchBar({ initialQuery = "", autoFocus = false, className }: S
         >
           Shop for&nbsp;
           <span
-            className="font-medium text-brand-navy pointer-events-auto cursor-pointer"
+            className="font-medium text-brand-navy"
             style={{
               opacity: wordVisible ? 1 : 0,
               transform: wordVisible ? "translateY(0)" : "translateY(3px)",
               transition: "opacity 0.25s ease, transform 0.25s ease",
             }}
-            onClick={handleSuggestionClick}
           >
             {currentWord}
           </span>

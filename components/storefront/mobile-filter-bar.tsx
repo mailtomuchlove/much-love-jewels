@@ -31,6 +31,16 @@ export function MobileFilterBar() {
   const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
+    const lenis = (window as Record<string, unknown>).__lenis as
+      | { stop: () => void; start: () => void }
+      | undefined;
+    if (!lenis) return;
+    if (sortOpen || filtersOpen) lenis.stop();
+    else lenis.start();
+    return () => lenis.start();
+  }, [sortOpen, filtersOpen]);
+
+  useEffect(() => {
     const footer = document.querySelector("footer");
     if (!footer) return;
     const observer = new IntersectionObserver(
@@ -158,7 +168,7 @@ export function MobileFilterBar() {
             )}
           </div>
 
-          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
+          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6" data-lenis-prevent>
             {/* Price Range */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Price Range</p>
