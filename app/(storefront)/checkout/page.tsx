@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { SHIPPING_FREE_THRESHOLD_PAISE, SHIPPING_CHARGE_PAISE } from "@/utils/constants";
 import { CheckoutClient } from "./checkout-client";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Checkout" };
@@ -32,6 +33,9 @@ export default async function CheckoutPage() {
 
   const items = cartItems ?? [];
 
+  // Redirect to home if cart is empty
+  if (items.length === 0) redirect("/");
+
   let subtotal = 0;
   for (const item of items) {
     const product = item.products as { price: number } | null;
@@ -39,7 +43,7 @@ export default async function CheckoutPage() {
     subtotal += ((product?.price ?? 0) + (variant?.price_adjustment ?? 0)) * item.quantity;
   }
 
-  const shipping = subtotal >= SHIPPING_FREE_THRESHOLD_PAISE ? 0 : SHIPPING_CHARGE_PAISE;
+  const shipping = subtotal > 0 && subtotal < SHIPPING_FREE_THRESHOLD_PAISE ? SHIPPING_CHARGE_PAISE : 0;
   const total = subtotal + shipping;
 
   return (
