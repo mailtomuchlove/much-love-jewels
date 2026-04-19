@@ -86,6 +86,9 @@ export async function deleteCategory(categoryId: string): Promise<ActionResult<v
     supabase.from("products").select("id, image_public_ids").eq("category_id", categoryId),
   ]);
 
+  // Detach products from this category before deleting (avoids FK constraint error)
+  await supabase.from("products").update({ category_id: null }).eq("category_id", categoryId);
+
   const { error } = await supabase.from("categories").delete().eq("id", categoryId);
   if (error) return { success: false, error: error.message };
 
