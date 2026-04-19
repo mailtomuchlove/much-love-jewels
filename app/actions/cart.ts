@@ -2,7 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { checkCartRateLimit } from "@/lib/ratelimit";
 import type { ActionResult, CartItemWithProduct, LocalCartItem } from "@/types";
+
+const MAX_QTY_PER_ITEM = 10;
 
 export async function addToCart(
   productId: string,
@@ -16,6 +19,17 @@ export async function addToCart(
 
   if (!user) {
     return { success: false, error: "auth_required" };
+  }
+
+  // Rate limit: 30 cart actions per 10 min per user
+  const { allowed } = await checkCartRateLimit(user.id);
+  if (!allowed) {
+    return { success: false, error: "Too many requests. Please slow down." };
+  }
+
+  // Cap quantity
+  if (quantity < 1 || quantity > MAX_QTY_PER_ITEM) {
+    return { success: false, error: `Quantity must be between 1 and ${MAX_QTY_PER_ITEM}` };
   }
 
   // Validate product exists and has stock
@@ -62,9 +76,10 @@ export async function addToCart(
         .maybeSingle();
 
       if (existing) {
+        const newQty = Math.min(existing.quantity + quantity, MAX_QTY_PER_ITEM);
         await supabase
           .from("cart_items")
-          .update({ quantity: existing.quantity + quantity })
+          .update({ quantity: newQty })
           .eq("id", existing.id);
       } else {
         await supabase.from("cart_items").insert({
@@ -85,9 +100,10 @@ export async function addToCart(
       .maybeSingle();
 
     if (existing) {
+      const newQty = Math.min(existing.quantity + quantity, MAX_QTY_PER_ITEM);
       await supabase
         .from("cart_items")
-        .update({ quantity: existing.quantity + quantity })
+        .update({ quantity: newQty })
         .eq("id", existing.id);
     } else {
       await supabase.from("cart_items").insert({
@@ -138,6 +154,10 @@ export async function updateCartQuantity(
 
   if (quantity <= 0) {
     return removeFromCart(cartItemId);
+  }
+
+  if (quantity > MAX_QTY_PER_ITEM) {
+    return { success: false, error: `Maximum ${MAX_QTY_PER_ITEM} per item allowed` };
   }
 
   const { error } = await supabase

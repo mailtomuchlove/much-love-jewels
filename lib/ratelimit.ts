@@ -1,18 +1,5 @@
-/**
- * Rate limiting utility — requires Upstash Redis for production.
- *
- * Setup:
- *   1. Create a free Redis database at https://console.upstash.com
- *   2. Add to .env.local (and Vercel env vars):
- *        UPSTASH_REDIS_REST_URL=https://...upstash.io
- *        UPSTASH_REDIS_REST_TOKEN=AX...
- *   3. Install packages:
- *        npm install @upstash/ratelimit @upstash/redis
- *   4. Uncomment the Upstash block below and remove the stub.
- *
- * Until Upstash is configured, this module returns { allowed: true }
- * for all requests so the app works without external dependencies.
- */
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 export type RateLimitResult = {
   allowed: boolean;
@@ -20,55 +7,51 @@ export type RateLimitResult = {
   retryAfterSeconds?: number;
 };
 
-// ── Stub (active when Upstash env vars are not set) ──────────────────────────
-// Replace this entire block with the Upstash implementation below once ready.
+const ALLOW_ALL: RateLimitResult = { allowed: true, remaining: 99 };
 
-// export async function checkAuthRateLimit(
-//   _ip: string
-// ): Promise<RateLimitResult> {
-//   return { allowed: true, remaining: 9 };
-// }
+// Lazy init — avoids crashing the module if env vars are missing at build time
+let redis: Redis | null = null;
+function getRedis(): Redis | null {
+  if (redis) return redis;
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null;
+  redis = Redis.fromEnv();
+  return redis;
+}
 
-// export async function checkOrderRateLimit(
-//   _userId: string
-// ): Promise<RateLimitResult> {
-//   return { allowed: true, remaining: 9 };
-// }
-
-// ── Upstash implementation (uncomment after setup) ────────────────────────────
-
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-const redis = Redis.fromEnv();
-
-const authLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, "15 m"), // 5 login attempts per 15 min per IP
-  prefix: "rl:auth",
-});
-
-const orderLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, "1 h"), // 10 orders per hour per user
-  prefix: "rl:order",
-});
-
-export async function checkAuthRateLimit(ip: string): Promise<RateLimitResult> {
-  const { success, remaining, reset } = await authLimiter.limit(ip);
+function makeLimiter(tokens: number, window: Parameters<typeof Ratelimit.slidingWindow>[1], prefix: string) {
   return {
-    allowed: success,
-    remaining,
-    retryAfterSeconds: success ? undefined : Math.ceil((reset - Date.now()) / 1000),
+    async limit(key: string): Promise<RateLimitResult> {
+      const r = getRedis();
+      if (!r) return ALLOW_ALL;
+      try {
+        const limiter = new Ratelimit({ redis: r, limiter: Ratelimit.slidingWindow(tokens, window), prefix });
+        const { success, remaining, reset } = await limiter.limit(key);
+        return {
+          allowed: success,
+          remaining,
+          retryAfterSeconds: success ? undefined : Math.ceil((reset - Date.now()) / 1000),
+        };
+      } catch {
+        // Redis unavailable — fail open so the store keeps working
+        return ALLOW_ALL;
+      }
+    },
   };
 }
 
-export async function checkOrderRateLimit(userId: string): Promise<RateLimitResult> {
-  const { success, remaining, reset } = await orderLimiter.limit(userId);
-  return {
-    allowed: success,
-    remaining,
-    retryAfterSeconds: success ? undefined : Math.ceil((reset - Date.now()) / 1000),
-  };
-}
+// 5 login attempts per 15 min per IP
+const authLimiter      = makeLimiter(5,  "15 m", "rl:auth");
+// 10 orders per hour per user
+const orderLimiter     = makeLimiter(10, "1 h",  "rl:order");
+// 20 order attempts per hour per IP (blocks multi-account bots)
+const orderIPLimiter   = makeLimiter(20, "1 h",  "rl:order:ip");
+// 30 cart actions per 10 min per user (blocks cart-flooding bots)
+const cartLimiter      = makeLimiter(30, "10 m", "rl:cart");
+// 3 order cancellations per day per user
+const cancelLimiter    = makeLimiter(3,  "24 h", "rl:cancel");
 
+export const checkAuthRateLimit       = (ip: string)     => authLimiter.limit(ip);
+export const checkOrderRateLimit      = (userId: string) => orderLimiter.limit(userId);
+export const checkOrderIPRateLimit    = (ip: string)     => orderIPLimiter.limit(ip);
+export const checkCartRateLimit       = (userId: string) => cartLimiter.limit(userId);
+export const checkCancelRateLimit     = (userId: string) => cancelLimiter.limit(userId);
