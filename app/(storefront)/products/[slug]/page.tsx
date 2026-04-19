@@ -273,56 +273,56 @@ export default async function ProductPage({ params }: PageProps) {
                 </div>
               ))}
             </div>
+
+            {/* Tabs: Description, Material & Care, Shipping */}
+            <div className="mt-8">
+              <Tabs defaultValue="description">
+                <TabsList className="border-b border-brand-border bg-transparent h-auto rounded-none p-0 gap-0 w-full justify-start">
+                  {["description", "care", "shipping"].map((tab) => (
+                    <TabsTrigger
+                      key={tab}
+                      value={tab}
+                      className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium capitalize text-gray-500 data-[state=active]:border-brand-navy data-[state=active]:text-brand-navy bg-transparent"
+                    >
+                      {tab === "care" ? "Material & Care" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                <TabsContent value="description" className="pt-4">
+                  {product.description ? (
+                    <p className="text-sm leading-relaxed text-gray-700">
+                      {product.description}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">No description available.</p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="care" className="pt-4">
+                  <div className="text-sm leading-relaxed text-gray-700 space-y-2">
+                    <p>• Store in a cool, dry place away from direct sunlight.</p>
+                    <p>• Avoid contact with perfumes, lotions, and chemicals.</p>
+                    <p>• Clean gently with a soft, dry cloth.</p>
+                    <p>• Remove jewellery before swimming or exercising.</p>
+                    {product.material && (
+                      <p>• Material: {product.material}</p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="shipping" className="pt-4">
+                  <div className="text-sm leading-relaxed text-gray-700 space-y-2">
+                    <p>• Free shipping on orders above ₹999.</p>
+                    <p>• Standard delivery: 3–7 business days.</p>
+                    <p>• Express delivery available at checkout.</p>
+                    <p>• All orders are shipped in premium packaging.</p>
+                    <p>• 30-day hassle-free returns on all products.</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
-        </div>
-
-        {/* Tabs: Description, Care, Shipping */}
-        <div className="mt-12">
-          <Tabs defaultValue="description">
-            <TabsList className="border-b border-brand-border bg-transparent h-auto rounded-none p-0 gap-0">
-              {["description", "care", "shipping"].map((tab) => (
-                <TabsTrigger
-                  key={tab}
-                  value={tab}
-                  className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-medium capitalize text-gray-500 data-[state=active]:border-brand-navy data-[state=active]:text-brand-navy bg-transparent"
-                >
-                  {tab === "care" ? "Material & Care" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="description" className="pt-6">
-              {product.description ? (
-                <p className="text-sm leading-relaxed text-gray-700 max-w-2xl">
-                  {product.description}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-500">No description available.</p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="care" className="pt-6">
-              <div className="text-sm leading-relaxed text-gray-700 max-w-2xl space-y-3">
-                <p>• Store in a cool, dry place away from direct sunlight.</p>
-                <p>• Avoid contact with perfumes, lotions, and chemicals.</p>
-                <p>• Clean gently with a soft, dry cloth.</p>
-                <p>• Remove jewellery before swimming or exercising.</p>
-                {product.material && (
-                  <p>• Material: {product.material}</p>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="shipping" className="pt-6">
-              <div className="text-sm leading-relaxed text-gray-700 max-w-2xl space-y-3">
-                <p>• Free shipping on orders above ₹999.</p>
-                <p>• Standard delivery: 3–7 business days.</p>
-                <p>• Express delivery available at checkout.</p>
-                <p>• All orders are shipped in premium packaging.</p>
-                <p>• 30-day hassle-free returns on all products.</p>
-              </div>
-            </TabsContent>
-          </Tabs>
         </div>
 
         {/* Reviews */}
