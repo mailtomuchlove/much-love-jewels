@@ -249,6 +249,7 @@ export async function verifyPayment(
           await supabase.rpc("decrement_stock", {
             p_product_id: item.product_id,
             p_quantity: item.quantity,
+            p_variant_id: item.variant_id ?? null,
           });
         } catch (err) {
           // Log but don't fail — order is already paid

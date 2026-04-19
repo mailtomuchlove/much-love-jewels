@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
   if (updatedOrder) {
     const { data: orderItems } = await supabase
       .from("order_items")
-      .select("product_id, quantity")
+      .select("product_id, variant_id, quantity")
       .eq("order_id", order.id);
 
     if (orderItems) {
@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
           await supabase.rpc("decrement_stock", {
             p_product_id: item.product_id,
             p_quantity: item.quantity,
+            p_variant_id: item.variant_id ?? null,
           });
         } catch (err) {
           // Log but do not fail — payment already captured
