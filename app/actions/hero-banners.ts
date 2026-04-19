@@ -109,7 +109,7 @@ export async function deleteHeroBanner(id: string) {
     .from("hero_banners")
     .select("image_src")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   const { error } = await supabase.from("hero_banners").delete().eq("id", id);
   if (error) throw new Error(error.message);

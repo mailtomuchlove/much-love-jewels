@@ -42,7 +42,7 @@ async function generateProductCode(
     .from("categories")
     .select("name")
     .eq("id", categoryId)
-    .single();
+    .maybeSingle();
 
   const prefix = (category?.name ?? "XX").slice(0, 2).toUpperCase();
 
@@ -117,14 +117,14 @@ export async function createProduct(
     .from("products")
     .select("id")
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
   const finalSlug = existing ? `${slug}-${Date.now()}` : slug;
 
   // Generate product code + fetch category slug for folder path
   const [productCode, categoryRow] = await Promise.all([
     generateProductCode(data.category_id, supabase),
-    supabase.from("categories").select("slug").eq("id", data.category_id).single(),
+    supabase.from("categories").select("slug").eq("id", data.category_id).maybeSingle(),
   ]);
   const categorySlug = categoryRow.data?.slug ?? "uncategorised";
 
@@ -205,7 +205,7 @@ export async function updateProduct(
     .from("products")
     .select("slug, categories(slug)")
     .eq("id", productId)
-    .single();
+    .maybeSingle();
 
   revalidatePath("/admin/products");
   revalidatePath(`/products/${product?.slug}`);
@@ -223,7 +223,7 @@ export async function deleteProduct(productId: string): Promise<ActionResult<voi
     .from("products")
     .select("image_public_ids, slug")
     .eq("id", productId)
-    .single();
+    .maybeSingle();
 
   const { error } = await supabase.from("products").delete().eq("id", productId);
   if (error) return { success: false, error: error.message };

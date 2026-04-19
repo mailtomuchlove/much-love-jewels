@@ -24,7 +24,7 @@ export async function addToCart(
     .select("id, stock, is_active")
     .eq("id", productId)
     .eq("is_active", true)
-    .single();
+    .maybeSingle();
 
   if (!product) return { success: false, error: "Product not found" };
 
@@ -33,7 +33,7 @@ export async function addToCart(
         .from("product_variants")
         .select("stock")
         .eq("id", variantId)
-        .single()
+        .maybeSingle()
       ).data?.stock ?? 0
     : product.stock;
 
