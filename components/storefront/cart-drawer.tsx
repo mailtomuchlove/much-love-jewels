@@ -18,7 +18,7 @@ export function CartDrawer() {
 
   // Stop Lenis smooth-scroll while cart is open so body overflow lock doesn't conflict
   useEffect(() => {
-    const lenis = (window as Record<string, unknown>).__lenis as
+    const lenis = (window as unknown as Record<string, unknown>).__lenis as
       | { stop: () => void; start: () => void }
       | undefined;
     if (!lenis) return;

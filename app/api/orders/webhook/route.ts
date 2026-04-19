@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/server";
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   // 1. Read raw body (required for HMAC verification)
@@ -122,8 +123,8 @@ export async function POST(request: NextRequest) {
       const oversold: string[] = [];
 
       for (const item of orderItems) {
-        const product = item.products as { stock: number } | null;
-        const variant = item.product_variants as { stock: number } | null;
+        const product = item.products as unknown as { stock: number } | null;
+        const variant = item.product_variants as unknown as { stock: number } | null;
         const available = variant ? variant.stock : (product?.stock ?? 0);
 
         if (available < item.quantity) {
@@ -145,7 +146,8 @@ export async function POST(request: NextRequest) {
       }
 
       if (oversold.length > 0) {
-        await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any)
           .from("orders")
           .update({ admin_notes: `⚠️ Oversold items (needs manual fulfillment): ${oversold.join(", ")}` })
           .eq("id", order.id);
@@ -153,7 +155,49 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 9. Clear the user's cart
+  // 9. Send confirmation emails (best-effort, non-blocking)
+  if (updatedOrder && order.user_id) {
+    const [{ data: { user } }, { data: orderData }] = await Promise.all([
+      supabase.auth.admin.getUserById(order.user_id),
+      supabase
+        .from("orders")
+        .select("order_number, subtotal_paise, shipping_paise, total_paise, shipping_address, order_items(product_name, variant_label, quantity, price_paise)")
+        .eq("id", order.id)
+        .maybeSingle(),
+    ]);
+
+    if (user?.email && orderData) {
+      const addr = orderData.shipping_address as Record<string, string>;
+      const emailData = {
+        orderNumber: orderData.order_number,
+        customerName: addr.name ?? "Customer",
+        items: (orderData.order_items as { product_name: string; variant_label: string | null; quantity: number; price_paise: number }[]).map((i) => ({
+          name: i.product_name,
+          variant: i.variant_label,
+          quantity: i.quantity,
+          pricePaise: i.price_paise,
+        })),
+        subtotalPaise: orderData.subtotal_paise,
+        shippingPaise: orderData.shipping_paise,
+        totalPaise: orderData.total_paise,
+        shippingAddress: {
+          name: addr.name,
+          line1: addr.line1,
+          line2: addr.line2,
+          city: addr.city,
+          state: addr.state,
+          pincode: addr.pincode,
+          phone: addr.phone,
+        },
+      };
+      await Promise.allSettled([
+        sendOrderConfirmationEmail(user.email, emailData),
+        sendAdminOrderNotification(emailData),
+      ]);
+    }
+  }
+
+  // 10. Clear the user's cart
   if (order.user_id) {
     await supabase.from("cart_items").delete().eq("user_id", order.user_id);
   }

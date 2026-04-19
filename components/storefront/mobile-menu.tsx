@@ -13,7 +13,7 @@ export function MobileMenu({ navLinks }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const lenis = (window as Record<string, unknown>).__lenis as
+    const lenis = (window as unknown as Record<string, unknown>).__lenis as
       | { stop: () => void; start: () => void }
       | undefined;
     if (!lenis) return;
