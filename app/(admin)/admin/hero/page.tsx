@@ -6,10 +6,11 @@ export const metadata: Metadata = { title: "Hero Banners — Admin" };
 
 export default async function HeroAdminPage() {
   let banners: HeroSlide[] = [];
+  let tableReady = true;
   try {
     banners = await getAllHeroBanners();
   } catch {
-    // hero_banners table may not exist yet — show empty state with SQL instructions
+    tableReady = false;
   }
 
   return (
@@ -21,13 +22,13 @@ export default async function HeroAdminPage() {
         </p>
       </div>
 
-      {/* DB setup notice */}
-      <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4">
-        <p className="text-sm font-semibold text-blue-800">First-time setup</p>
-        <p className="text-xs text-blue-700 mt-1 mb-3">
-          Run this SQL once in your Supabase SQL editor to create the hero_banners table:
-        </p>
-        <pre className="text-[11px] bg-blue-100 rounded p-3 overflow-x-auto text-blue-900 leading-relaxed whitespace-pre-wrap">{`create table if not exists hero_banners (
+      {!tableReady && (
+        <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4">
+          <p className="text-sm font-semibold text-blue-800">First-time setup</p>
+          <p className="text-xs text-blue-700 mt-1 mb-3">
+            Run this SQL once in your Supabase SQL editor to create the hero_banners table:
+          </p>
+          <pre className="text-[11px] bg-blue-100 rounded p-3 overflow-x-auto text-blue-900 leading-relaxed whitespace-pre-wrap">{`create table if not exists hero_banners (
   id uuid primary key default gen_random_uuid(),
   headline text not null,
   subline text not null default '',
@@ -54,10 +55,11 @@ create policy "Admins can manage banners"
       where id = auth.uid() and role = 'admin'
     )
   );`}</pre>
-        <p className="text-xs text-blue-600 mt-2">
-          After running the SQL, refresh this page and add your first slide.
-        </p>
-      </div>
+          <p className="text-xs text-blue-600 mt-2">
+            After running the SQL, refresh this page and add your first slide.
+          </p>
+        </div>
+      )}
 
       <HeroClient banners={banners} />
     </div>

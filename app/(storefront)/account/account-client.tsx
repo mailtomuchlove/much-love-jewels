@@ -219,6 +219,7 @@ export function AccountClient({
     if (!result.success) {
       toast.error(result.error);
     } else {
+      toast.success("Default address updated");
       setAddresses((prev) =>
         prev.map((a) => ({ ...a, is_default: a.id === id }))
       );
@@ -228,7 +229,10 @@ export function AccountClient({
   async function handleRemoveWishlist(productId: string) {
     const result = await toggleWishlist(productId);
     if (result.success && !result.data.added) {
+      toast.success("Removed from wishlist");
       setWishlist((prev) => prev.filter((w) => w.product_id !== productId));
+    } else if (!result.success) {
+      toast.error("Failed to remove from wishlist");
     }
   }
 

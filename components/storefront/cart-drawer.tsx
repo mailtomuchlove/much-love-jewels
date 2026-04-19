@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartUI, useGuestCart } from "@/store/cart-store";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function CartDrawer() {
   const { isOpen, close } = useCartUI();
@@ -142,9 +143,10 @@ export function CartDrawer() {
                                 )}
                               </div>
                               <button
-                                onClick={() =>
-                                  removeItem(item.product_id, item.variant_id)
-                                }
+                                onClick={() => {
+                                  removeItem(item.product_id, item.variant_id);
+                                  toast.success("Item removed from cart");
+                                }}
                                 className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
                                 aria-label="Remove item"
                               >
