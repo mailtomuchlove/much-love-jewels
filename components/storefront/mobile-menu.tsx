@@ -23,7 +23,7 @@ export function MobileMenu({ navLinks }: MobileMenuProps) {
       </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-[280px] p-0">
+        <SheetContent side="left" className="w-[280px] p-0" showCloseButton={false}>
           <div className="flex h-[60px] items-center justify-between border-b px-4">
             <span className="font-poppins text-lg font-bold text-brand-navy">
               Much Love <span className="text-brand-gold">Jewels</span>
