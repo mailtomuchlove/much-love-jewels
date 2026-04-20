@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { createClient, createStaticClient } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { FilterTopBar } from "@/components/storefront/filter-top-bar";
@@ -112,11 +113,28 @@ export default async function CollectionPage({
   const { data: products, count } = await query;
   const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://muchlovejewels.com";
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: category.name, item: `${siteUrl}/collections/${slug}` },
+    ],
+  };
+
   return (
     <div className="container-site py-8 md:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="text-xs text-brand-text-muted mb-6" aria-label="Breadcrumb">
-        <span>Home</span> / <span className="text-brand-navy font-medium">{category.name}</span>
+        <Link href="/" className="hover:text-brand-navy transition-colors">Home</Link>
+        {" / "}
+        <span className="text-brand-navy font-medium">{category.name}</span>
       </nav>
 
       {/* Header */}

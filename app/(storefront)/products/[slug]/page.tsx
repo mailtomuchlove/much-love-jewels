@@ -101,8 +101,10 @@ export default async function ProductPage({ params }: PageProps) {
         .limit(4)
     : { data: [] };
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://muchlovejewels.com";
+
   // JSON-LD structured data
-  const jsonLd = {
+  const productJsonLd = {
     "@context": "https://schema.org/",
     "@type": "Product",
     name: product.name,
@@ -126,11 +128,25 @@ export default async function ProductPage({ params }: PageProps) {
     }),
   };
 
+  const breadcrumbItems = [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+    ...(category
+      ? [{ "@type": "ListItem", position: 2, name: category.name, item: `${siteUrl}/collections/${category.slug}` }]
+      : []),
+    { "@type": "ListItem", position: category ? 3 : 2, name: product.name, item: `${siteUrl}/products/${product.slug}` },
+  ];
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbItems,
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]) }}
       />
 
       <div className="container-site py-8 md:py-12">

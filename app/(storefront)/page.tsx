@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "Much Love Jewels — AD & Imitation Bridal Jewellery",
   description:
     "Shop stunning AD & imitation jewellery online — bridal sets, necklaces, earrings, bangles and more. Bold designs, affordable prices.",
+  keywords: ["AD jewellery", "imitation jewellery", "bridal jewellery", "south indian jewellery", "much love jewels", "bridal set", "necklace set", "American Diamond jewellery"],
+  openGraph: {
+    images: [{ url: "/og-home.jpg", width: 1200, height: 630, alt: "Much Love Jewels — AD & Imitation Bridal Jewellery" }],
+  },
 };
 
 const trustBadges = [

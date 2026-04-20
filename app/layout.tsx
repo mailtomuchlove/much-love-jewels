@@ -44,6 +44,35 @@ export const metadata: Metadata = {
   },
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://muchlovejewels.com";
+
+const globalJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Much Love Jewels",
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+    sameAs: ["https://www.instagram.com/muchlove.salon"],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      availableLanguage: "English",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Much Love Jewels",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -55,6 +84,10 @@ export default function RootLayout({
       className={`${playfair.variable} ${dmSans.variable} h-full`}
     >
       <body className="min-h-full antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }}
+        />
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

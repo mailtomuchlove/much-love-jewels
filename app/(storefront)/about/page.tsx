@@ -1,14 +1,60 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://muchlovejewels.com";
+
 export const metadata: Metadata = {
   title: "About Us",
   description: "Learn about Much Love Jewels — your destination for premium AD & imitation jewellery.",
+  alternates: { canonical: `${siteUrl}/about` },
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is AD jewellery?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "AD jewellery uses American Diamond (cubic zirconia) stones that closely resemble real diamonds. It is premium-quality imitation jewellery popular for bridal wear and festive occasions in India.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is imitation jewellery durable?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Quality imitation jewellery from Much Love Jewels uses premium-grade materials that retain their shine and colour with proper care. Store in a cool, dry place and avoid contact with water and chemicals.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do you ship across India?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, we ship pan-India. Free shipping is available on orders above ₹999. Standard delivery takes 3–7 business days.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I care for AD jewellery?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Keep AD jewellery away from water, perfumes, and chemicals. Clean with a soft dry cloth and store in a jewellery box. Remove before swimming or exercising.",
+      },
+    },
+  ],
 };
 
 export default function AboutPage() {
   return (
     <div className="container-site py-12 md:py-20 max-w-3xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <p className="text-brand-gold text-xs font-semibold uppercase tracking-[0.2em] mb-4">
         Our Story
       </p>
