@@ -34,6 +34,7 @@ export const productSchema = z.object({
   is_featured: z.boolean().default(false),
   meta_title: z.string().max(60).optional().nullable(),
   meta_description: z.string().max(160).optional().nullable(),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 export const categorySchema = z.object({

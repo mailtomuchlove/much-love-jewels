@@ -50,11 +50,11 @@
   --color-ring:                    #C4956A;
 
   /* ── Typography */
-  --font-sans:    var(--font-jost);        /* Jost — elegant geometric sans */
-  --font-heading: var(--font-cormorant);   /* Cormorant Garamond — serif display */
+  --font-sans:    var(--font-dm-sans);     /* DM Sans — clean modern sans */
+  --font-heading: var(--font-playfair);    /* Playfair Display — warm luxury serif */
 
   /* --font-poppins kept as alias so existing font-poppins classes still work */
-  --font-poppins: var(--font-jost);
+  --font-poppins: var(--font-dm-sans);
 
   /* ── Border Radius — slightly tighter for a more refined look */
   --radius:    0.5rem;    /* 8px */
@@ -97,12 +97,21 @@
     line-height: 1.65;
   }
 
-  /* Headings use the serif display font */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading), var(--font-sans), serif;
-    font-weight: 500;        /* serifs look best at lighter weights */
+  /* H1, H2 — Playfair Display serif (display headings) */
+  h1, h2 {
+    font-family: var(--font-heading), serif;
+    font-weight: 600;
     line-height: 1.15;
-    letter-spacing: 0.01em; /* slight open tracking — suits serif display */
+    letter-spacing: 0.01em;
+    color: var(--color-brand-navy);
+  }
+
+  /* H3–H6 — DM Sans (subheadings, UI labels) */
+  h3, h4, h5, h6 {
+    font-family: var(--font-sans), sans-serif;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
     color: var(--color-brand-navy);
   }
 
@@ -132,31 +141,40 @@
     @apply py-7 md:py-12;
   }
 
-  /* ── Headings — serif display font */
+  /* ── Display & H1/H2 — Playfair Display serif */
   .heading-display {
     font-family: var(--font-heading), serif;
-    @apply text-5xl font-medium text-brand-navy lg:text-6xl;
+    @apply text-5xl font-semibold text-brand-navy lg:text-6xl;
     letter-spacing: 0.01em;
   }
   .heading-h1 {
     font-family: var(--font-heading), serif;
-    @apply text-4xl font-medium text-brand-navy md:text-5xl;
+    @apply text-4xl font-semibold text-brand-navy md:text-5xl;
     letter-spacing: 0.01em;
   }
   .heading-h2 {
     font-family: var(--font-heading), serif;
-    @apply text-3xl font-medium text-brand-navy md:text-4xl;
+    @apply text-3xl font-semibold text-brand-navy md:text-4xl;
     letter-spacing: 0.01em;
   }
+
+  /* ── H3/H4 — DM Sans subheadings */
   .heading-h3 {
-    font-family: var(--font-heading), serif;
-    @apply text-2xl font-medium text-brand-navy md:text-3xl;
-    letter-spacing: 0.01em;
+    font-family: var(--font-sans), sans-serif;
+    @apply text-xl font-semibold text-brand-navy md:text-2xl;
+    letter-spacing: 0;
   }
   .heading-h4 {
-    font-family: var(--font-heading), serif;
-    @apply text-xl font-medium text-brand-navy;
-    letter-spacing: 0.01em;
+    font-family: var(--font-sans), sans-serif;
+    @apply text-lg font-semibold text-brand-navy;
+    letter-spacing: 0;
+  }
+
+  /* ── Subheading utility — DM Sans Medium, between heading and body */
+  .subheading {
+    font-family: var(--font-sans), sans-serif;
+    @apply text-base font-medium text-brand-text-muted md:text-lg;
+    letter-spacing: 0;
   }
 
   .body-lg   { @apply text-base leading-relaxed text-brand-text-muted md:text-lg; }
@@ -234,7 +252,7 @@
 
 /* ─── Toast (Sonner) — card style with colored left border ─── */
 .mlj-toast {
-  @apply bg-white border border-gray-200 rounded-lg shadow-sm gap-2.5 items-center !important;
+  @apply !bg-white !border !border-gray-200 !rounded-lg !shadow-sm !gap-2.5 !items-center;
   border-left-width: 4px !important;
   border-left-color: theme(colors.gray.300) !important;
   min-width: 300px !important;
@@ -247,11 +265,11 @@
 .mlj-toast--info    { border-left-color: theme(colors.blue.500) !important; }
 
 .mlj-toast__title {
-  @apply text-sm font-semibold text-gray-900 leading-snug !important;
+  @apply !text-sm !font-semibold !text-gray-900 !leading-snug;
 }
 .mlj-toast__description {
-  @apply text-xs text-gray-500 leading-snug !important;
+  @apply !text-xs !text-gray-500 !leading-snug;
 }
 .mlj-toast__close {
-  @apply text-gray-400 bg-transparent border-none !important;
+  @apply !text-gray-400 !bg-transparent !border-none;
 }

@@ -56,6 +56,8 @@ function Field({ label, required, hint, children }: { label: string; required?: 
 export function ProductForm({ categories, product }: ProductFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [tags, setTags] = useState<string[]>(product?.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
 
   const [form, setForm] = useState({
     name: product?.name ?? "",
@@ -85,7 +87,13 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     setForm((p) => ({ ...p, [key]: value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function addTag(raw: string) {
+    const tag = raw.trim().toLowerCase().replace(/\s+/g, "-");
+    if (tag && !tags.includes(tag)) setTags((t) => [...t, tag]);
+    setTagInput("");
+  }
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (images.length === 0) {
@@ -145,6 +153,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       image_public_ids: images.map((img) => img.public_id),
       meta_title: form.meta_title || undefined,
       meta_description: form.meta_description || undefined,
+      tags,
     };
 
     const result = product
@@ -165,10 +174,27 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="flex items-center gap-3 mb-4">
+        <Button
+          type="submit"
+          disabled={saving}
+          className="bg-brand-navy hover:bg-brand-navy-light text-white h-10 px-6 font-medium"
+        >
+          {saving ? "Saving…" : product ? "Update Product" : "Create Product"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          className="h-10 px-6"
+        >
+          Cancel
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
         {/* ── Left column ── */}
-        <div className="lg:col-span-7 space-y-5">
+        <div className="lg:col-span-7 space-y-4">
 
           {/* Images */}
           <Card title="Product Images / Videos" required>
@@ -200,45 +226,85 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                 value={form.description}
                 onChange={(e) => setField("description", e.target.value)}
                 placeholder="Product description…"
-                rows={5}
+                rows={3}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </Field>
 
-            <Field label="Category" required>
-              <Select
-                value={form.category_id}
-                onValueChange={(v) => v && setField("category_id", v)}
-              >
-                <SelectTrigger className="h-10 w-full">
-                  <span className={form.category_id ? "text-sm" : "text-sm text-muted-foreground"}>
-                    {form.category_id
-                      ? (categories.find((c) => c.id === form.category_id)?.name ?? "Unknown")
-                      : "Select a category"}
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
+            <Field label="Tags" hint="Press Enter or , to add · auto-normalised to lowercase-kebab">
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {tags.map((tag) => (
+                    <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-xs font-medium text-brand-navy">
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setTags(tags.filter((t) => t !== tag))}
+                        className="text-brand-navy/50 hover:text-brand-navy leading-none"
+                      >
+                        ×
+                      </button>
+                    </span>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === ",") {
+                      e.preventDefault();
+                      addTag(tagInput);
+                    }
+                  }}
+                  placeholder="e.g. handpicked, bestseller"
+                  className="h-9 flex-1"
+                />
+                <Button type="button" variant="outline" className="h-9 px-3 shrink-0" onClick={() => addTag(tagInput)}>
+                  Add
+                </Button>
+              </div>
             </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Category" required>
+                <Select
+                  value={form.category_id}
+                  onValueChange={(v) => v && setField("category_id", v)}
+                >
+                  <SelectTrigger className="h-10 w-full">
+                    <span className={form.category_id ? "text-sm" : "text-sm text-muted-foreground"}>
+                      {form.category_id
+                        ? (categories.find((c) => c.id === form.category_id)?.name ?? "Unknown")
+                        : "Select a category"}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              {product && (
+                <Field label="Product ID">
+                  <div className="h-10 flex items-center px-3 rounded-md border border-input bg-gray-50 text-sm font-mono text-gray-600 tracking-wider">
+                    {product.product_code ?? <span className="text-gray-400 italic font-sans tracking-normal text-xs">Not assigned</span>}
+                  </div>
+                </Field>
+              )}
+            </div>
           </Card>
         </div>
 
         {/* ── Right column ── */}
-        <div className="lg:col-span-5 space-y-5">
+        <div className="lg:col-span-5 space-y-4">
 
           {/* Pricing & Stock */}
           <Card title="Pricing & Stock">
-            <Field label="Product ID" hint="Auto-generated on save, cannot be changed">
-              <div className="h-10 flex items-center px-3 rounded-md border border-input bg-gray-50 text-sm font-mono text-gray-500 tracking-wider">
-                {product?.product_code ?? <span className="text-gray-400 italic font-sans tracking-normal">Auto-assigned on save</span>}
-              </div>
-            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Price (₹)" required>
                 <Input
@@ -347,24 +413,6 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             </Field>
           </Card>
 
-          {/* Submit */}
-          <div className="flex items-center gap-3 pt-1 pb-4">
-            <Button
-              type="submit"
-              disabled={saving}
-              className="flex-1 bg-brand-navy hover:bg-brand-navy-light text-white h-11 font-medium"
-            >
-              {saving ? "Saving…" : product ? "Update Product" : "Create Product"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="h-11 px-6"
-            >
-              Cancel
-            </Button>
-          </div>
         </div>
       </div>
     </form>

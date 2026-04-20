@@ -16,15 +16,20 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     (window as unknown as Record<string, unknown>).__lenis = lenis;
 
     let rafId: number;
+    let active = true;
+
     function raf(time: number) {
+      if (!active) return;
       lenis.raf(time);
       rafId = requestAnimationFrame(raf);
     }
     rafId = requestAnimationFrame(raf);
 
     return () => {
+      active = false;
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      delete (window as unknown as Record<string, unknown>).__lenis;
     };
   }, []);
 

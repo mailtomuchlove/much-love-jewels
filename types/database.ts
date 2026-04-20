@@ -84,6 +84,7 @@ export interface Database {
           meta_title: string | null;
           meta_description: string | null;
           product_code: string | null;
+          tags: string[];
           created_at: string;
           updated_at: string;
         };
@@ -105,6 +106,7 @@ export interface Database {
           meta_title?: string | null;
           meta_description?: string | null;
           product_code?: string | null;
+          tags?: string[];
         };
         Update: {
           name?: string;
@@ -123,6 +125,7 @@ export interface Database {
           meta_title?: string | null;
           meta_description?: string | null;
           product_code?: string | null;
+          tags?: string[];
           updated_at?: string;
         };
         Relationships: [

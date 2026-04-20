@@ -30,6 +30,7 @@ type ProductFormData = {
   image_public_ids: string[];
   meta_title?: string;
   meta_description?: string;
+  tags?: string[];
 };
 
 // ── Product code generation ───────────────────────────────────────────────────
@@ -153,6 +154,7 @@ export async function createProduct(
       meta_title: data.meta_title ?? null,
       meta_description: data.meta_description ?? null,
       product_code: productCode,
+      tags: data.tags ?? [],
     })
     .select("id, slug")
     .single();
@@ -193,6 +195,7 @@ export async function updateProduct(
   if (data.image_public_ids !== undefined) updateData.image_public_ids = data.image_public_ids;
   if (data.meta_title !== undefined) updateData.meta_title = data.meta_title;
   if (data.meta_description !== undefined) updateData.meta_description = data.meta_description;
+  if (data.tags !== undefined) updateData.tags = data.tags;
 
   const { error } = await supabase
     .from("products")

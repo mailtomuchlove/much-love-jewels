@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { MotionProvider } from "@/components/providers/motion-provider";
 
-/* Serif display font — used for all headings */
-const cormorant = Cormorant_Garamond({
+/* Warm serif display — headings, luxury feel for South Indian bridal */
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  variable: "--font-playfair",
   display: "swap",
 });
 
-/* Elegant geometric sans — UI text, body, buttons */
-const jost = Jost({
+/* Modern geometric sans — body, UI, buttons */
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-jost",
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
@@ -52,8 +52,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-scroll-behavior="smooth"
-      className={`${cormorant.variable} ${jost.variable} h-full`}
+      className={`${playfair.variable} ${dmSans.variable} h-full`}
     >
       <body className="min-h-full antialiased">
         <MotionProvider>{children}</MotionProvider>

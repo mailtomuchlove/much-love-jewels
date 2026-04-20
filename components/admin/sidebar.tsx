@@ -9,6 +9,7 @@ import {
   ShoppingBag,
   Tag,
   Image,
+  Layers,
   LogOut,
   ChevronRight,
   Menu,
@@ -23,6 +24,7 @@ const NAV = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag, exact: false },
   { href: "/admin/categories", label: "Categories", icon: Tag, exact: false },
   { href: "/admin/hero", label: "Hero Banners", icon: Image, exact: false },
+  { href: "/admin/sections", label: "Homepage Sections", icon: Layers, exact: false },
 ];
 
 export function AdminSidebar() {

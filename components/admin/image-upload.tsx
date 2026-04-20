@@ -172,7 +172,7 @@ export function ImageUpload({
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
-          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-8 px-4 cursor-pointer transition-colors ${
+          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-5 px-4 cursor-pointer transition-colors ${
             dragging
               ? "border-brand-navy bg-brand-navy/5"
               : "border-gray-300 hover:border-brand-navy/50 hover:bg-gray-50"
