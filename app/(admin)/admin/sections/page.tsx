@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import {
   getAllHomepageSections,
   getDistinctProductTags,
+  type HomepageSection,
 } from "@/app/actions/homepage-sections";
 import { SectionsClient } from "./sections-client";
 
 export const metadata: Metadata = { title: "Homepage Sections — Admin" };
 
 export default async function SectionsAdminPage() {
-  let sections = [];
+  let sections: HomepageSection[] = [];
   let availableTags: string[] = [];
   let tableReady = true;
 
