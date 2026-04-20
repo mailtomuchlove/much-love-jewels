@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Heart, User, Search } from "lucide-react";
+import { Heart, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "./mobile-menu";
 import { CartButton } from "./cart-button";
 import { SearchBar } from "./search-bar";
 import { HeaderScrollWrapper } from "./header-scroll-wrapper";
+import { HeaderAuthButton } from "./header-auth-button";
 
 const navLinks = [
   { label: "Collections", href: "/collections" },
@@ -92,13 +93,7 @@ export async function Header() {
             </Link>
 
             {/* Account */}
-            <Link
-              href={user ? "/account" : "/auth/login"}
-              aria-label={user ? "My Account" : "Sign In"}
-              className="h-9 w-9 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
-            >
-              <User className="h-5 w-5" />
-            </Link>
+            <HeaderAuthButton isLoggedIn={!!user} />
 
             {/* Cart (Client Component — controls drawer) */}
             <CartButton serverCount={cartCount} />

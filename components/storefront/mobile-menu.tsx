@@ -6,6 +6,7 @@ import { Menu, X, LogOut, User } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAuthModal } from "@/lib/auth-modal-context";
 
 interface MobileMenuProps {
   navLinks: { label: string; href: string }[];
@@ -15,6 +16,7 @@ interface MobileMenuProps {
 export function MobileMenu({ navLinks, user }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { open: openAuthModal } = useAuthModal();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -88,13 +90,12 @@ export function MobileMenu({ navLinks, user }: MobileMenuProps) {
                 </button>
               </>
             ) : (
-              <Link
-                href="/auth/login"
-                onClick={() => setOpen(false)}
-                className="mt-6 py-2.5 text-base font-medium text-brand-navy"
+              <button
+                onClick={() => { setOpen(false); openAuthModal("login"); }}
+                className="mt-6 py-2.5 text-base font-medium text-brand-navy text-left"
               >
                 Sign In / Register
-              </Link>
+              </button>
             )}
           </nav>
         </SheetContent>

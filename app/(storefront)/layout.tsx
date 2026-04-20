@@ -4,6 +4,8 @@ import { Footer } from "@/components/storefront/footer";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
 import { WishlistInitializer } from "@/components/storefront/wishlist-initializer";
+import { AuthModalProvider } from "@/lib/auth-modal-context";
+import { AuthModal } from "@/components/storefront/auth-modal";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StorefrontLayout({
@@ -24,14 +26,17 @@ export default async function StorefrontLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">{children}</main>
-      <Footer />
-      <CartDrawer />
-      <WhatsAppButton />
-      <WishlistInitializer productIds={wishlistIds} />
-      <Toaster />
-    </div>
+    <AuthModalProvider>
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
+        <CartDrawer />
+        <WhatsAppButton />
+        <WishlistInitializer productIds={wishlistIds} />
+        <Toaster />
+        <AuthModal />
+      </div>
+    </AuthModalProvider>
   );
 }
