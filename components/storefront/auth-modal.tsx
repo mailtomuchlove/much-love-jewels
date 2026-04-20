@@ -6,6 +6,8 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { validateSignupEmail } from "@/app/actions/auth";
+import { mergeCartOnLogin } from "@/app/actions/cart";
+import { useGuestCart } from "@/store/cart-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,6 +83,14 @@ export function AuthModal() {
       // Login
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Merge guest cart into DB before navigating
+      const guestItems = useGuestCart.getState().items;
+      if (guestItems.length > 0) {
+        await mergeCartOnLogin(guestItems);
+        useGuestCart.getState().clearCart();
+      }
+
       close();
       if (nextUrl) {
         router.push(nextUrl);
