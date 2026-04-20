@@ -6,6 +6,8 @@ import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
 import { WishlistInitializer } from "@/components/storefront/wishlist-initializer";
 import { AuthModalProvider } from "@/lib/auth-modal-context";
 import { AuthModal } from "@/components/storefront/auth-modal";
+import { AuthModalTrigger } from "@/components/storefront/auth-modal-trigger";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StorefrontLayout({
@@ -36,6 +38,9 @@ export default async function StorefrontLayout({
         <WishlistInitializer productIds={wishlistIds} />
         <Toaster />
         <AuthModal />
+        <Suspense fallback={null}>
+          <AuthModalTrigger />
+        </Suspense>
       </div>
     </AuthModalProvider>
   );

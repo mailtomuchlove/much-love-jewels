@@ -12,7 +12,7 @@ interface PageProps {
 }
 
 export default async function AccountPage({ searchParams }: PageProps) {
-  const profile = await requireAuth();
+  const profile = await requireAuth("/account");
   const supabase = await createClient();
   const { tab } = await searchParams;
   const { data: { user } } = await supabase.auth.getUser();

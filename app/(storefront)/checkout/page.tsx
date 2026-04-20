@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Checkout" };
 
 export default async function CheckoutPage() {
-  const profile = await requireAuth();
+  const profile = await requireAuth("/checkout");
   const supabase = await createClient();
 
   // Fetch addresses, cart, and auth user email in parallel

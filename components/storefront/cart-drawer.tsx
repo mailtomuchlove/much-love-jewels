@@ -12,11 +12,15 @@ import { createClient } from "@/lib/supabase/client";
 import { removeFromCartByProduct, updateCartQuantityByProduct } from "@/app/actions/cart";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuthModal } from "@/lib/auth-modal-context";
+import { useRouter } from "next/navigation";
 
 export function CartDrawer() {
   const { isOpen, close } = useCartUI();
   const { items, addItem, removeItem, updateQuantity, getTotal, itemCount } = useGuestCart();
   const userIdRef = useRef<string | null>(null);
+  const { open: openAuthModal } = useAuthModal();
+  const router = useRouter();
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -235,13 +239,19 @@ export function CartDrawer() {
                   Shipping calculated at checkout
                 </p>
                 <Separator className="mb-4" />
-                <Link
-                  href="/checkout"
-                  onClick={close}
+                <button
+                  onClick={() => {
+                    close();
+                    if (userIdRef.current) {
+                      router.push("/checkout");
+                    } else {
+                      openAuthModal("login", "/checkout");
+                    }
+                  }}
                   className="flex h-11 w-full items-center justify-center rounded-lg bg-brand-navy text-white hover:bg-brand-navy-light font-medium text-sm transition-colors"
                 >
                   Proceed to Checkout
-                </Link>
+                </button>
                 <button
                   onClick={close}
                   className="mt-3 w-full text-center text-sm text-gray-500 hover:text-brand-navy transition-colors"

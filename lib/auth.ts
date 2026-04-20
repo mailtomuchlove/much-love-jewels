@@ -20,17 +20,22 @@ export async function getCurrentUser(): Promise<Profile | null> {
   return profile;
 }
 
-// Require authentication — redirects to /auth/login if not logged in.
-export async function requireAuth(): Promise<Profile> {
+// Require authentication — opens auth modal via URL param if not logged in.
+export async function requireAuth(next?: string): Promise<Profile> {
   const profile = await getCurrentUser();
-  if (!profile) redirect("/auth/login");
+  if (!profile) {
+    const dest = next
+      ? `/?modal=login&next=${encodeURIComponent(next)}`
+      : "/?modal=login";
+    redirect(dest);
+  }
   return profile;
 }
 
 // Require admin role — redirects to / if not admin.
 export async function requireAdmin(): Promise<Profile> {
   const profile = await getCurrentUser();
-  if (!profile) redirect("/auth/login");
+  if (!profile) redirect("/?modal=login");
   if (profile.role !== "admin") redirect("/");
   return profile;
 }

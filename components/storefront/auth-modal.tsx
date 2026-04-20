@@ -25,7 +25,7 @@ const GoogleIcon = () => (
 );
 
 export function AuthModal() {
-  const { isOpen, mode: contextMode, close } = useAuthModal();
+  const { isOpen, mode: contextMode, nextUrl, close } = useAuthModal();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +45,7 @@ export function AuthModal() {
     }
   }, [isOpen, contextMode]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     try {
@@ -82,7 +82,11 @@ export function AuthModal() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       close();
-      router.refresh();
+      if (nextUrl) {
+        router.push(nextUrl);
+      } else {
+        router.refresh();
+      }
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
