@@ -5,8 +5,6 @@ import { requireAuth } from "@/lib/auth";
 import { createRazorpayOrder, verifyRazorpaySignature } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { SHIPPING_FREE_THRESHOLD_PAISE, SHIPPING_CHARGE_PAISE } from "@/utils/constants";
-import { checkOrderRateLimit, checkOrderIPRateLimit, checkCancelRateLimit } from "@/lib/ratelimit";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { sendOrderConfirmationEmail, sendAdminOrderNotification } from "@/lib/email";
 import type { ActionResult, Json } from "@/types";
@@ -24,19 +22,6 @@ export async function createOrder(
   addressId: string
 ): Promise<ActionResult<CreateOrderResult>> {
   const profile = await requireAuth();
-
-  // Rate limit: max 10 order creations per hour per user
-  const { allowed } = await checkOrderRateLimit(profile.id);
-  if (!allowed) {
-    return { success: false, error: "Too many orders. Please wait before placing another." };
-  }
-
-  // Rate limit: max 20 order attempts per hour per IP (blocks multi-account abuse)
-  const ip = ((await headers()).get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
-  const { allowed: ipAllowed } = await checkOrderIPRateLimit(ip);
-  if (!ipAllowed) {
-    return { success: false, error: "Too many requests from your network. Please try again later." };
-  }
 
   const supabase = await createClient();
 
@@ -369,12 +354,6 @@ export async function getUserOrders() {
 
 export async function cancelOrder(orderId: string): Promise<ActionResult<void>> {
   const profile = await requireAuth();
-
-  // Max 3 cancellations per day per user
-  const { allowed } = await checkCancelRateLimit(profile.id);
-  if (!allowed) {
-    return { success: false, error: "You've cancelled too many orders today. Contact support if you need help." };
-  }
 
   const supabase = await createClient();
 

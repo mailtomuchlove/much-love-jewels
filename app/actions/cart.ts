@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { checkCartRateLimit } from "@/lib/ratelimit";
 import type { ActionResult, CartItemWithProduct, LocalCartItem } from "@/types";
 
 const MAX_QTY_PER_ITEM = 10;
@@ -19,12 +18,6 @@ export async function addToCart(
 
   if (!user) {
     return { success: false, error: "auth_required" };
-  }
-
-  // Rate limit: 30 cart actions per 10 min per user
-  const { allowed } = await checkCartRateLimit(user.id);
-  if (!allowed) {
-    return { success: false, error: "Too many requests. Please slow down." };
   }
 
   // Cap quantity
