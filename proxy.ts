@@ -1,37 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
-import { checkAuthRateLimit } from "@/lib/ratelimit";
 
 export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
-  // Rate-limit login/signup form submissions (POST to /auth/login page action)
-  if (pathname === "/auth/login" && request.method === "POST") {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
-    const { allowed, retryAfterSeconds } = await checkAuthRateLimit(ip);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many login attempts. Please try again later." },
-        {
-          status: 429,
-          headers: retryAfterSeconds
-            ? { "Retry-After": String(retryAfterSeconds) }
-            : undefined,
-        }
-      );
-    }
-  }
-
   // Protect /admin/* — requires authenticated user
   // Actual role check (admin vs customer) lives in requireAdmin() inside each page
   if (pathname.startsWith("/admin")) {
     if (!user) {
-      const loginUrl = new URL("/auth/login", request.url);
-      loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
+      const dest = new URL("/", request.url);
+      dest.searchParams.set("modal", "login");
+      dest.searchParams.set("next", pathname);
+      return NextResponse.redirect(dest);
     }
   }
 
@@ -42,9 +23,10 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/orders")
   ) {
     if (!user) {
-      const loginUrl = new URL("/auth/login", request.url);
-      loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
+      const dest = new URL("/", request.url);
+      dest.searchParams.set("modal", "login");
+      dest.searchParams.set("next", pathname);
+      return NextResponse.redirect(dest);
     }
   }
 
