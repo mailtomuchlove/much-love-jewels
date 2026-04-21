@@ -35,7 +35,7 @@ export async function requireAuth(next?: string): Promise<Profile> {
 // Require admin role — redirects to / if not admin.
 export async function requireAdmin(): Promise<Profile> {
   const profile = await getCurrentUser();
-  if (!profile) redirect("/?modal=login");
+  if (!profile) redirect("/?modal=login&next=%2Fadmin");
   if (profile.role !== "admin") redirect("/");
   return profile;
 }
