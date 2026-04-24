@@ -12,7 +12,7 @@ export function HeaderAuthButton({ isLoggedIn }: { isLoggedIn: boolean }) {
       <Link
         href="/account"
         aria-label="My Account"
-        className="h-9 w-9 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+        className="h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
       >
         <User className="h-5 w-5" />
       </Link>
@@ -23,7 +23,7 @@ export function HeaderAuthButton({ isLoggedIn }: { isLoggedIn: boolean }) {
     <button
       onClick={() => open("login")}
       aria-label="Sign In"
-      className="h-9 w-9 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+      className="h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
     >
       <User className="h-5 w-5" />
     </button>

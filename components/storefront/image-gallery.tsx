@@ -96,14 +96,14 @@ export function ImageGallery({
           <>
             <button
               onClick={goPrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-full bg-white/90 shadow-md text-brand-navy hover:bg-white transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 flex items-center justify-center rounded-full bg-white/90 shadow-md text-brand-navy hover:bg-white transition-colors"
               aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={goNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-full bg-white/90 shadow-md text-brand-navy hover:bg-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 flex items-center justify-center rounded-full bg-white/90 shadow-md text-brand-navy hover:bg-white transition-colors"
               aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />

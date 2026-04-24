@@ -193,7 +193,7 @@
   /* ── Badges */
   .badge-gold {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-sm
-           bg-brand-gold/10 text-brand-gold-muted text-xs font-medium
+           bg-brand-gold/10 text-brand-navy text-xs font-medium
            border border-brand-gold/20 tracking-wide uppercase;
   }
   .badge-stock-low {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -91,6 +91,8 @@ const contentVariants = {
 export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
   const slides = dbSlides && dbSlides.length > 0 ? normalizeSlides(dbSlides) : FALLBACK_SLIDES;
   const [activeIndex, setActiveIndex] = useState(0);
+  const isFirstMount = useRef(true);
+  useEffect(() => { isFirstMount.current = false; }, []);
 
   const goTo = useCallback((index: number) => {
     setActiveIndex(index);
@@ -123,7 +125,7 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
           <motion.div
             key={slide.imageSrc}
             className="absolute inset-0"
-            initial={{ opacity: 0 }}
+            initial={isFirstMount.current && activeIndex === 0 ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
@@ -180,7 +182,7 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
               <motion.p
                 custom={0}
                 variants={contentVariants}
-                initial="hidden"
+                initial={isFirstMount.current ? "visible" : "hidden"}
                 animate="visible"
                 exit="exit"
                 className="text-brand-gold-light text-xs font-semibold uppercase tracking-[0.2em] mb-4"
@@ -190,7 +192,7 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
               <motion.h1
                 custom={0.07}
                 variants={contentVariants}
-                initial="hidden"
+                initial={isFirstMount.current ? "visible" : "hidden"}
                 animate="visible"
                 exit="exit"
                 className="font-poppins text-white font-bold leading-tight mb-4"
@@ -206,7 +208,7 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
               <motion.p
                 custom={0.15}
                 variants={contentVariants}
-                initial="hidden"
+                initial={isFirstMount.current ? "visible" : "hidden"}
                 animate="visible"
                 exit="exit"
                 className="text-white/80 text-sm md:text-base leading-relaxed mb-8 max-w-[380px]"
@@ -216,7 +218,7 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
               <motion.div
                 custom={0.22}
                 variants={contentVariants}
-                initial="hidden"
+                initial={isFirstMount.current ? "visible" : "hidden"}
                 animate="visible"
                 exit="exit"
                 className="flex items-center gap-4"
@@ -229,6 +231,7 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
                 </Link>
                 <Link
                   href="/collections"
+                  aria-label="View all collections"
                   className="text-white/80 hover:text-white text-sm font-medium underline underline-offset-4 transition-colors"
                 >
                   View All
@@ -242,33 +245,36 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
       {/* Navigation arrows */}
       <button
         onClick={goPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
         aria-label="Previous slide"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
       <button
         onClick={goNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-11 w-11 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
         aria-label="Next slide"
       >
         <ChevronRight className="h-5 w-5" />
       </button>
 
-      {/* Dot indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+      {/* Dot indicators — button is 40px touch target; inner span is the visual dot */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex">
         {slides.map((_: Slide, i: number) => (
           <button
             key={i}
             onClick={() => goTo(i)}
-            className={cn(
-              "rounded-full transition-all duration-300",
-              i === activeIndex
-                ? "w-8 h-2 bg-brand-gold"
-                : "w-2 h-2 bg-white/40 hover:bg-white/70"
-            )}
+            className="flex h-10 w-10 items-center justify-center"
             aria-label={`Go to slide ${i + 1}`}
-          />
+          >
+            <span
+              style={{ transform: i === activeIndex ? "scaleX(4)" : "scaleX(1)" }}
+              className={cn(
+                "block h-2 w-2 rounded-full origin-left transition-transform duration-300",
+                i === activeIndex ? "bg-brand-gold" : "bg-white/40"
+              )}
+            />
+          </button>
         ))}
       </div>
     </section>

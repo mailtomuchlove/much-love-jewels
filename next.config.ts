@@ -43,9 +43,18 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      {
+        // Long-lived cache for public static assets (og image, SVGs, fonts)
+        // Not immutable — filenames don't include a content hash
+        source: "/:file+\\.(jpg|jpeg|png|webp|avif|svg|ico|woff2|ttf|eot)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" },
+        ],
+      },
     ];
   },
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "**.cdninstagram.com" },

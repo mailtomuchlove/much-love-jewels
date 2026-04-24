@@ -78,7 +78,7 @@ export async function Header() {
             <Link
               href="/search"
               aria-label="Search"
-              className="sm:hidden h-9 w-9 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+              className="sm:hidden h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
             >
               <Search className="h-5 w-5" />
             </Link>
@@ -87,7 +87,7 @@ export async function Header() {
             <Link
               href="/account?tab=wishlist"
               aria-label="Wishlist"
-              className="hidden sm:flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+              className="hidden sm:flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
             >
               <Heart className="h-5 w-5" />
             </Link>

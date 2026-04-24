@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
-import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { CartDrawerLazy } from "@/components/storefront/cart-drawer-lazy";
 import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
 import { WishlistInitializer } from "@/components/storefront/wishlist-initializer";
 import { AuthModalProvider } from "@/lib/auth-modal-context";
@@ -33,7 +33,7 @@ export default async function StorefrontLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
-        <CartDrawer />
+        <CartDrawerLazy />
         <WhatsAppButton />
         <WishlistInitializer productIds={wishlistIds} />
         <Toaster />

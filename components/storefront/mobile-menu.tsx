@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import Link from "next/link";
 import { Menu, X, LogOut, User } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -27,20 +28,17 @@ export function MobileMenu({ navLinks, user }: MobileMenuProps) {
   }
 
   useEffect(() => {
-    const lenis = (window as unknown as Record<string, unknown>).__lenis as
-      | { stop: () => void; start: () => void }
-      | undefined;
-    if (!lenis) return;
-    if (open) lenis.stop();
-    else lenis.start();
-    return () => lenis.start();
+    if (open) {
+      lockScroll();
+      return () => unlockScroll();
+    }
   }, [open]);
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:text-brand-navy md:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:text-brand-navy md:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />
@@ -54,7 +52,7 @@ export function MobileMenu({ navLinks, user }: MobileMenuProps) {
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="text-gray-500"
+              className="h-11 w-11 flex items-center justify-center rounded-md text-gray-500 hover:text-brand-navy hover:bg-brand-cream transition-colors"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />

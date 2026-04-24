@@ -83,6 +83,9 @@ export default function RootLayout({
       lang="en"
       className={`${playfair.variable} ${dmSans.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+      </head>
       <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"

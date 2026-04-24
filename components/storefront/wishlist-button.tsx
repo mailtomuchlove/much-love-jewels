@@ -58,7 +58,7 @@ export function WishlistButton({ productId, className }: WishlistButtonProps) {
       disabled={isPending}
       aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm transition-all duration-200 hover:scale-110",
+        "flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm transition-all duration-200 hover:scale-110",
         isPending && "opacity-60",
         className
       )}
@@ -68,7 +68,7 @@ export function WishlistButton({ productId, className }: WishlistButtonProps) {
           "h-4 w-4 transition-colors",
           wishlisted
             ? "fill-red-500 text-red-500"
-            : "text-gray-400 hover:text-red-400"
+            : "text-gray-500 hover:text-red-400"
         )}
       />
     </button>

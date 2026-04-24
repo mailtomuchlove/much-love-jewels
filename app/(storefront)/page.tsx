@@ -119,7 +119,7 @@ export default async function HomePage() {
                 <h2 className="heading-h2">Featured Jewellery</h2>
                 <div className="divider-gold mt-3" />
               </div>
-              <Link href="/collections" className="text-sm font-medium text-brand-navy hover:text-brand-gold transition-colors underline underline-offset-4">
+              <Link href="/collections" aria-label="View all featured jewellery" className="text-sm font-medium text-brand-navy hover:text-brand-gold transition-colors underline underline-offset-4">
                 View All
               </Link>
             </div>
@@ -138,7 +138,7 @@ export default async function HomePage() {
                   <h2 className="heading-h2">{section.title}</h2>
                   <div className="divider-gold mt-3" />
                 </div>
-                <Link href={`/collections?tag=${encodeURIComponent(section.tag)}`} className="text-sm font-medium text-brand-navy hover:text-brand-gold transition-colors underline underline-offset-4">
+                <Link href={`/collections?tag=${encodeURIComponent(section.tag)}`} aria-label={`View all ${section.title}`} className="text-sm font-medium text-brand-navy hover:text-brand-gold transition-colors underline underline-offset-4">
                   View All
                 </Link>
               </div>

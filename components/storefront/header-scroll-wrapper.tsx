@@ -14,10 +14,14 @@ export function HeaderScrollWrapper({ children }: { children: React.ReactNode })
   }, []);
 
   return (
-    <div
-      data-scrolled={scrolled}
-      className="transition-[box-shadow,background-color] duration-300 data-[scrolled=true]:shadow-md data-[scrolled=true]:bg-white/95 data-[scrolled=true]:[backdrop-filter:blur(8px)]"
-    >
+    <div className="relative">
+      {/* Composited opacity fade — avoids painting box-shadow/bg-color on every scroll tick */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 bg-white/95 shadow-md [backdrop-filter:blur(8px)] transition-opacity duration-300 ${
+          scrolled ? "opacity-100" : "opacity-0"
+        }`}
+      />
       {children}
     </div>
   );
