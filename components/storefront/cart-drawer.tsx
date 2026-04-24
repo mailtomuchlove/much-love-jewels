@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import Link from "next/link";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
@@ -28,15 +29,9 @@ export function CartDrawer() {
     });
   }, []);
 
-  // Stop Lenis smooth-scroll while cart is open so body overflow lock doesn't conflict
   useEffect(() => {
-    const lenis = (window as unknown as Record<string, unknown>).__lenis as
-      | { stop: () => void; start: () => void }
-      | undefined;
-    if (!lenis) return;
-    if (isOpen) lenis.stop();
-    else lenis.start();
-    return () => lenis.start();
+    if (isOpen) lockScroll();
+    return () => unlockScroll();
   }, [isOpen]);
 
   // Hydrate items that were stored without product data (existing localStorage carts)
@@ -105,7 +100,7 @@ export function CartDrawer() {
             </div>
 
             {/* Items */}
-            <div className="flex-1 overflow-y-auto px-4 py-3" data-lenis-prevent>
+            <div className="flex-1 overflow-y-auto px-4 py-3">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <ShoppingBag className="mb-4 h-12 w-12 text-gray-200" />

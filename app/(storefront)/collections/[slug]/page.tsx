@@ -36,7 +36,7 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: category } = await supabase
     .from("categories")
-    .select("name, description")
+    .select("name, description, image_url")
     .eq("slug", slug)
     .single();
 
@@ -51,6 +51,11 @@ export async function generateMetadata({
       `Shop our ${category.name} collection. Premium handcrafted jewellery.`,
     alternates: {
       canonical: `${siteUrl}/collections/${slug}`,
+    },
+    openGraph: {
+      images: category.image_url
+        ? [{ url: category.image_url, width: 1200, height: 630 }]
+        : [],
     },
   };
 }

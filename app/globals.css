@@ -83,17 +83,11 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* scroll-behavior handled by Lenis */
-    @apply h-full;
+    scroll-behavior: smooth;
   }
 
-  /* Lenis smooth scroll compat */
-  html.lenis, html.lenis body { height: auto; }
-  .lenis.lenis-smooth { scroll-behavior: auto !important; }
-  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-
   body {
-    @apply bg-background text-foreground font-sans min-h-full;
+    @apply bg-background text-foreground font-sans min-h-screen;
     line-height: 1.65;
   }
 

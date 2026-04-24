@@ -20,18 +20,13 @@ import { formatPrice } from "@/lib/utils";
 import { INDIAN_STATES } from "@/utils/constants";
 import { addressSchema } from "@/utils/validators";
 import { toast } from "sonner";
-import type { Address, Profile } from "@/types";
+import type { Address, Profile, CartItem } from "@/types";
 
 interface CheckoutClientProps {
   profile: Profile;
   userEmail: string;
   addresses: Address[];
-  cartItems: {
-    id: string;
-    quantity: number;
-    products: { name: string; price: number; images: string[] } | null;
-    product_variants: { label: string; price_adjustment: number } | null;
-  }[];
+  cartItems: CartItem[];
   subtotal: number;
   shipping: number;
   total: number;

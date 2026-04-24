@@ -80,11 +80,16 @@ export async function deleteCategory(categoryId: string): Promise<ActionResult<v
   await requireAdmin();
   const supabase = await createClient();
 
-  // Fetch category slug + all product images before deleting
+  // Fetch category slug + all product images (including urls) before deleting
   const [{ data: category }, { data: products }] = await Promise.all([
     supabase.from("categories").select("slug").eq("id", categoryId).single(),
-    supabase.from("products").select("id, image_public_ids").eq("category_id", categoryId),
+    supabase.from("products").select("id, images, image_public_ids").eq("category_id", categoryId),
   ]);
+
+  // Build in-memory map so the Cloudinary loop doesn't make extra DB selects per image
+  const productDataMap = new Map(
+    (products ?? []).map((p) => [p.id, { images: p.images ?? [], image_public_ids: p.image_public_ids ?? [] }])
+  );
 
   // Detach products from this category before deleting (avoids FK constraint error)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,22 +108,28 @@ export async function deleteCategory(categoryId: string): Promise<ActionResult<v
         (p.image_public_ids ?? []).map(async (oldId: string) => {
           const filename = oldId.split("/").pop()!;
           const newId = `${backupPrefix}/${filename}`;
+          // Use in-memory data — no extra DB selects inside the loop
+          const cached = productDataMap.get(p.id)!;
           try {
             const result = await renameCloudinaryAsset(oldId, newId, "image");
-            // Update product row with new URL
             await supabase
               .from("products")
               .update({
-                images: (await supabase.from("products").select("images").eq("id", p.id).single())
-                  .data?.images?.map((url: string) =>
-                    url.includes(filename) ? result.secure_url : url
-                  ) ?? [],
-                image_public_ids: (await supabase.from("products").select("image_public_ids").eq("id", p.id).single())
-                  .data?.image_public_ids?.map((id: string) =>
-                    id === oldId ? result.public_id : id
-                  ) ?? [],
+                images: cached.images.map((url: string) =>
+                  url.includes(filename) ? result.secure_url : url
+                ),
+                image_public_ids: cached.image_public_ids.map((id: string) =>
+                  id === oldId ? result.public_id : id
+                ),
               })
               .eq("id", p.id);
+            // Update local cache so subsequent images in the same product stay consistent
+            cached.images = cached.images.map((url: string) =>
+              url.includes(filename) ? result.secure_url : url
+            );
+            cached.image_public_ids = cached.image_public_ids.map((id: string) =>
+              id === oldId ? result.public_id : id
+            );
           } catch {
             try { await renameCloudinaryAsset(oldId, `${backupPrefix}/${filename}`, "video"); } catch { /* ignore */ }
           }

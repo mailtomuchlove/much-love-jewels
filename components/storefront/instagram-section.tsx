@@ -58,7 +58,7 @@ export function InstagramSection({ handle, posts }: InstagramSectionProps) {
           posts.length === 4 ? "grid-cols-2 sm:grid-cols-4" :
           "grid-cols-3 lg:grid-cols-4"
         }`}>
-          {posts.map((post) => {
+          {posts.map((post, idx) => {
             const imgSrc =
               post.mediaType === "VIDEO"
                 ? post.thumbnailUrl ?? post.mediaUrl
@@ -80,6 +80,8 @@ export function InstagramSection({ handle, posts }: InstagramSectionProps) {
                   sizes="(max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
                   unoptimized
+                  priority={idx < 2}
+                  loading={idx < 2 ? "eager" : "lazy"}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300 flex items-center justify-center">
                   <InstagramIcon className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

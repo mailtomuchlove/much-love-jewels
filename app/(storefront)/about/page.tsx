@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "About Us",
   description: "Learn about Much Love Jewels — your destination for premium AD & imitation jewellery.",
   alternates: { canonical: `${siteUrl}/about` },
+  openGraph: {
+    images: [{ url: "/og-home.jpg", width: 1200, height: 630, alt: "Much Love Jewels" }],
+  },
 };
 
 const faqJsonLd = {

@@ -9,6 +9,46 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      hero_banners: {
+        Row: {
+          id: string;
+          headline: string;
+          subline: string;
+          cta_label: string;
+          cta_href: string;
+          image_src: string | null;
+          overlay_opacity: number;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          headline: string;
+          subline?: string;
+          cta_label?: string;
+          cta_href?: string;
+          image_src?: string | null;
+          overlay_opacity?: number;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          headline?: string;
+          subline?: string;
+          cta_label?: string;
+          cta_href?: string;
+          image_src?: string | null;
+          overlay_opacity?: number;
+          sort_order?: number;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;

@@ -78,32 +78,28 @@ export function HeroClient({ banners: initial }: { banners: HeroSlide[] }) {
       return;
     }
     setSaving(true);
-    try {
-      if (editing) {
-        await updateHeroBanner(editing.id, form);
-        toast.success("Slide updated.");
-      } else {
-        await createHeroBanner(form);
-        toast.success("Slide created.");
-      }
-      setDialogOpen(false);
-      router.refresh();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      setSaving(false);
+    const result = editing
+      ? await updateHeroBanner(editing.id, form)
+      : await createHeroBanner(form);
+    setSaving(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    toast.success(editing ? "Slide updated." : "Slide created.");
+    setDialogOpen(false);
+    router.refresh();
   }
 
   async function handleDelete(id: string) {
-    try {
-      await deleteHeroBanner(id);
-      setBanners((prev) => prev.filter((b) => b.id !== id));
-      toast.success("Slide deleted.");
-      router.refresh();
-    } catch {
-      toast.error("Failed to delete slide.");
+    const result = await deleteHeroBanner(id);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    setBanners((prev) => prev.filter((b) => b.id !== id));
+    toast.success("Slide deleted.");
+    router.refresh();
   }
 
   return (

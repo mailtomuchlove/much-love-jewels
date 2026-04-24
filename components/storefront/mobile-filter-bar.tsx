@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { ArrowUpDown, SlidersHorizontal } from "lucide-react";
@@ -31,13 +32,8 @@ export function MobileFilterBar() {
   const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
-    const lenis = (window as unknown as Record<string, unknown>).__lenis as
-      | { stop: () => void; start: () => void }
-      | undefined;
-    if (!lenis) return;
-    if (sortOpen || filtersOpen) lenis.stop();
-    else lenis.start();
-    return () => lenis.start();
+    if (sortOpen || filtersOpen) lockScroll();
+    return () => unlockScroll();
   }, [sortOpen, filtersOpen]);
 
   useEffect(() => {
@@ -168,7 +164,7 @@ export function MobileFilterBar() {
             )}
           </div>
 
-          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6" data-lenis-prevent>
+          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
             {/* Price Range */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Price Range</p>

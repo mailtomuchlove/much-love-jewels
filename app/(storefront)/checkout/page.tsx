@@ -4,6 +4,7 @@ import { SHIPPING_FREE_THRESHOLD_PAISE, SHIPPING_CHARGE_PAISE } from "@/utils/co
 import { CheckoutClient } from "./checkout-client";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import type { CartItem } from "@/types";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -53,7 +54,7 @@ export default async function CheckoutPage() {
         profile={profile}
         userEmail={userEmail}
         addresses={addresses ?? []}
-        cartItems={items as never}
+        cartItems={items as CartItem[]}
         subtotal={subtotal}
         shipping={shipping}
         total={total}

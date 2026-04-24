@@ -55,7 +55,7 @@ export default async function HomePage() {
       .limit(6),
     getHomepageSections().catch(() => []),
     process.env.BEHOLD_FEED_URL
-      ? fetch(process.env.BEHOLD_FEED_URL, { next: { revalidate: 3600 } })
+      ? fetch(process.env.BEHOLD_FEED_URL, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(3000) })
           .then((r) => r.json())
           .catch(() => null)
       : Promise.resolve(null),

@@ -81,9 +81,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${dmSans.variable} h-full`}
+      className={`${playfair.variable} ${dmSans.variable}`}
     >
-      <body className="min-h-full antialiased">
+      <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(globalJsonLd) }}

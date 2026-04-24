@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/button";
 import { useRazorpay } from "@/hooks/use-razorpay";
 import { createOrder, verifyPayment } from "@/app/actions/orders";
@@ -103,8 +104,8 @@ export function RazorpayButton({
         },
       });
     } catch (err) {
-      toast.error("Something went wrong. Please try again.");
-      console.error(err);
+      Sentry.captureException(err);
+      toast.error("Payment could not be completed. Please try again.");
       setLoading(false);
     }
   }

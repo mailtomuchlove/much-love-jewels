@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
@@ -35,13 +36,8 @@ export function FilterTopBar({ totalCount }: FilterTopBarProps) {
   const sortRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const lenis = (window as unknown as Record<string, unknown>).__lenis as
-      | { stop: () => void; start: () => void }
-      | undefined;
-    if (!lenis) return;
-    if (filtersOpen) lenis.stop();
-    else lenis.start();
-    return () => lenis.start();
+    if (filtersOpen) lockScroll();
+    return () => unlockScroll();
   }, [filtersOpen]);
 
   useEffect(() => {
@@ -168,7 +164,7 @@ export function FilterTopBar({ totalCount }: FilterTopBarProps) {
             )}
           </div>
 
-          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6" data-lenis-prevent>
+          <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Price Range</p>
               <div className="grid grid-cols-2 gap-2">

@@ -3,6 +3,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types";
 
 export type HeroSlide = {
   id: string;
@@ -16,12 +17,8 @@ export type HeroSlide = {
   is_active: boolean;
 };
 
-// hero_banners table isn't in the generated types yet (run SQL migration first)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyClient = { from: (table: string) => any };
-
 export async function getHeroBanners(): Promise<HeroSlide[]> {
-  const supabase = (await createClient()) as unknown as AnyClient;
+  const supabase = await createClient();
   const { data } = await supabase
     .from("hero_banners")
     .select("*")
@@ -32,7 +29,7 @@ export async function getHeroBanners(): Promise<HeroSlide[]> {
 
 export async function getAllHeroBanners(): Promise<HeroSlide[]> {
   await requireAdmin();
-  const supabase = (await createClient()) as unknown as AnyClient;
+  const supabase = await createClient();
   const { data } = await supabase
     .from("hero_banners")
     .select("*")
@@ -49,9 +46,9 @@ export async function createHeroBanner(form: {
   overlay_opacity: number;
   sort_order: number;
   is_active: boolean;
-}) {
+}): Promise<ActionResult> {
   await requireAdmin();
-  const supabase = (await createClient()) as unknown as AnyClient;
+  const supabase = await createClient();
   const { error } = await supabase.from("hero_banners").insert({
     headline: form.headline.trim(),
     subline: form.subline.trim(),
@@ -62,9 +59,10 @@ export async function createHeroBanner(form: {
     sort_order: form.sort_order,
     is_active: form.is_active,
   });
-  if (error) throw new Error(error.message);
+  if (error) return { success: false, error: error.message };
   revalidatePath("/");
   revalidatePath("/admin/hero");
+  return { success: true, data: undefined };
 }
 
 export async function updateHeroBanner(
@@ -79,9 +77,9 @@ export async function updateHeroBanner(
     sort_order: number;
     is_active: boolean;
   }
-) {
+): Promise<ActionResult> {
   await requireAdmin();
-  const supabase = (await createClient()) as unknown as AnyClient;
+  const supabase = await createClient();
   const { error } = await supabase
     .from("hero_banners")
     .update({
@@ -95,14 +93,15 @@ export async function updateHeroBanner(
       is_active: form.is_active,
     })
     .eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) return { success: false, error: error.message };
   revalidatePath("/");
   revalidatePath("/admin/hero");
+  return { success: true, data: undefined };
 }
 
-export async function deleteHeroBanner(id: string) {
+export async function deleteHeroBanner(id: string): Promise<ActionResult> {
   await requireAdmin();
-  const supabase = (await createClient()) as unknown as AnyClient;
+  const supabase = await createClient();
 
   // Fetch image_src before deleting so we can archive it
   const { data: banner } = await supabase
@@ -112,7 +111,7 @@ export async function deleteHeroBanner(id: string) {
     .maybeSingle();
 
   const { error } = await supabase.from("hero_banners").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) return { success: false, error: error.message };
 
   // Best-effort: move banner image to hero-banners/archived/
   if (banner?.image_src) {
@@ -130,19 +129,20 @@ export async function deleteHeroBanner(id: string) {
 
   revalidatePath("/");
   revalidatePath("/admin/hero");
+  return { success: true, data: undefined };
 }
 
-export async function reorderHeroBanners(ids: string[]) {
+export async function reorderHeroBanners(ids: string[]): Promise<ActionResult> {
   await requireAdmin();
-  const supabase = (await createClient()) as unknown as AnyClient;
-  await Promise.all(
+  const supabase = await createClient();
+  const results = await Promise.all(
     ids.map((id, i) =>
-      supabase
-        .from("hero_banners")
-        .update({ sort_order: i })
-        .eq("id", id)
+      supabase.from("hero_banners").update({ sort_order: i }).eq("id", id)
     )
   );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) return { success: false, error: failed.error.message };
   revalidatePath("/");
   revalidatePath("/admin/hero");
+  return { success: true, data: undefined };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -36,15 +37,9 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
     setNextUrl(null);
   }
 
-  // Lock scroll when modal is open (same pattern as CartDrawer)
   useEffect(() => {
-    const lenis = (window as unknown as Record<string, unknown>).__lenis as
-      | { stop: () => void; start: () => void }
-      | undefined;
-    if (!lenis) return;
-    if (isOpen) lenis.stop();
-    else lenis.start();
-    return () => lenis.start();
+    if (isOpen) lockScroll();
+    return () => unlockScroll();
   }, [isOpen]);
 
   return (

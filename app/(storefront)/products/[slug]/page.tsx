@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient, createStaticClient } from "@/lib/supabase/server";
@@ -14,6 +15,18 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Per-request cache — generateMetadata and the page component share one DB round trip
+const getProduct = cache(async (slug: string) => {
+  const supabase = await createClient();
+  return supabase
+    .from("products")
+    .select(
+      "*, categories(id, name, slug), product_variants(*), reviews(id, rating, is_approved, comment, created_at)"
+    )
+    .eq("slug", slug)
+    .single();
+});
+
 export async function generateStaticParams() {
   const supabase = createStaticClient();
   const { data } = await supabase
@@ -25,12 +38,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("products")
-    .select("name, meta_title, meta_description, images, image_public_ids, price")
-    .eq("slug", slug)
-    .single();
+  const { data } = await getProduct(slug);
 
   if (!data) return { title: "Product Not Found" };
 
@@ -52,15 +60,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
 
-  const { data: product, error: productError } = await supabase
-    .from("products")
-    .select(
-      "*, categories(id, name, slug), product_variants(*), reviews(id, rating, is_approved, comment, created_at)"
-    )
-    .eq("slug", slug)
-    .single();
+  const { data: product, error: productError } = await getProduct(slug);
 
   if (productError || !product) notFound();
 
@@ -91,6 +92,7 @@ export default async function ProductPage({ params }: PageProps) {
       : null;
 
   // Related products
+  const supabase = await createClient();
   const { data: relatedProducts } = category
     ? await supabase
         .from("products")
