@@ -151,6 +151,14 @@ export default async function HomePage() {
           </section>
         ))}
 
+      {reviews.length > 0 && <ReviewsSection reviews={reviews as never} />}
+
+      <BridalSplitSection />
+
+      {instagramHandle && instagramPosts.length > 0 && (
+        <InstagramSection handle={instagramHandle} posts={instagramPosts} />
+      )}
+
       {/* Brand story */}
       <section className="section bg-brand-navy">
         <div className="container-site">
@@ -172,8 +180,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {reviews.length > 0 && <ReviewsSection reviews={reviews as never} />}
-
       {/* WhatsApp CTA */}
       <section className="section-sm bg-brand-cream border-t border-brand-border">
         <FadeIn className="container-site text-center">
@@ -193,12 +199,6 @@ export default async function HomePage() {
           </Link>
         </FadeIn>
       </section>
-
-      <BridalSplitSection />
-
-      {instagramHandle && instagramPosts.length > 0 && (
-        <InstagramSection handle={instagramHandle} posts={instagramPosts} />
-      )}
     </>
   );
 }
