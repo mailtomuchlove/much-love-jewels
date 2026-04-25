@@ -16,6 +16,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       position="top-right"
+      expand
+      visibleToasts={6}
       className="toaster group"
       icons={{
         success: (
