@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
@@ -10,107 +10,112 @@ interface CategoryGridProps {
   categories: Pick<Category, "id" | "name" | "slug" | "image_url">[];
 }
 
-const SCROLL_BY = 3; // items to advance per arrow click
+const DESKTOP_COLS = 6;
 
 export function CategoryGrid({ categories }: CategoryGridProps) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(false);
-
-  const syncArrows = useCallback(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    setCanLeft(el.scrollLeft > 4);
-    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-  }, []);
-
-  useEffect(() => {
-    syncArrows();
-    const el = trackRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(syncArrows);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [categories, syncArrows]);
-
-  function scroll(dir: "left" | "right") {
-    const el = trackRef.current;
-    if (!el) return;
-    const itemW = el.firstElementChild
-      ? (el.firstElementChild as HTMLElement).offsetWidth + 24
-      : 144;
-    el.scrollBy({ left: dir === "left" ? -itemW * SCROLL_BY : itemW * SCROLL_BY, behavior: "smooth" });
-  }
+  const [page, setPage] = useState(0);
 
   if (categories.length === 0) return null;
+
+  const totalPages = Math.ceil(categories.length / DESKTOP_COLS);
+  const pageItems = categories.slice(page * DESKTOP_COLS, (page + 1) * DESKTOP_COLS);
+  const showArrows = totalPages > 1;
 
   return (
     <section className="section bg-brand-cream">
       <div className="container-site">
 
-        {/* Header row with arrows */}
-        <div className="flex items-end justify-between mb-6 md:mb-10">
+        {/* Header */}
+        <div className="flex items-end justify-between mb-8 md:mb-12">
           <div>
             <h2 className="heading-h2">Shop by Collection</h2>
             <div className="divider-gold mt-3" />
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => scroll("left")}
-              disabled={!canLeft}
-              aria-label="Scroll left"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              disabled={!canRight}
-              aria-label="Scroll right"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+          {showArrows && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-brand-text-muted tabular-nums">
+                {page + 1} / {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  aria-label="Previous"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page === totalPages - 1}
+                  aria-label="Next"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Single-row scroll track */}
-        <div
-          ref={trackRef}
-          onScroll={syncArrows}
-          className="flex gap-6 overflow-x-auto scrollbar-hide pb-2"
-        >
+        {/* ── Mobile: horizontal scroll (3 visible) ── */}
+        <div className="lg:hidden flex gap-5 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
           {categories.map((cat, i) => (
-            <Link
-              key={cat.id}
-              href={`/collections/${cat.slug}`}
-              className="group flex-shrink-0 flex flex-col items-center gap-3 w-[120px] animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
-              style={{ animationDelay: `${i * 50}ms`, animationDuration: "0.4s" }}
-            >
-              <div className="relative w-[120px] h-[120px] overflow-hidden rounded-full border-2 border-transparent bg-white shadow-sm transition-all duration-200 group-hover:border-brand-gold group-hover:shadow-md">
-                {cat.image_url ? (
-                  <SafeImage
-                    src={cat.image_url}
-                    alt={cat.name}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="120px"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-brand-cream to-brand-cream-dark flex items-center justify-center">
-                    <span className="text-2xl font-bold text-brand-gold/30">{cat.name[0]}</span>
-                  </div>
-                )}
-              </div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-center text-brand-navy group-hover:text-brand-gold transition-colors leading-tight">
-                {cat.name}
-              </span>
-            </Link>
+            <CategoryItem key={cat.id} cat={cat} size={100} index={i} />
+          ))}
+        </div>
+
+        {/* ── Desktop: 6-column page grid ── */}
+        <div className="hidden lg:grid grid-cols-6 gap-6">
+          {pageItems.map((cat, i) => (
+            <CategoryItem key={cat.id} cat={cat} size={160} index={i} />
           ))}
         </div>
 
       </div>
     </section>
+  );
+}
+
+function CategoryItem({
+  cat,
+  size,
+  index,
+}: {
+  cat: Pick<Category, "id" | "name" | "slug" | "image_url">;
+  size: number;
+  index: number;
+}) {
+  return (
+    <Link
+      href={`/collections/${cat.slug}`}
+      className="group flex-shrink-0 flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+      style={{ animationDelay: `${index * 50}ms`, animationDuration: "0.4s", width: size }}
+    >
+      <div
+        className="relative overflow-hidden rounded-full border-2 border-transparent bg-white shadow-sm transition-all duration-200 group-hover:border-brand-gold group-hover:shadow-md"
+        style={{ width: size, height: size }}
+      >
+        {cat.image_url ? (
+          <SafeImage
+            src={cat.image_url}
+            alt={cat.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes={`${size}px`}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-brand-cream to-brand-cream-dark flex items-center justify-center">
+            <span className="font-bold text-brand-gold/30" style={{ fontSize: size * 0.28 }}>
+              {cat.name[0]}
+            </span>
+          </div>
+        )}
+      </div>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-center text-brand-navy group-hover:text-brand-gold transition-colors leading-tight w-full">
+        {cat.name}
+      </span>
+    </Link>
   );
 }
