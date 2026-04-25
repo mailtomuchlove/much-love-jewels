@@ -6,9 +6,12 @@ import { CartButton } from "./cart-button";
 import { SearchBar } from "./search-bar";
 import { HeaderScrollWrapper } from "./header-scroll-wrapper";
 import { HeaderAuthButton } from "./header-auth-button";
+import { MegaMenuBridal } from "./mega-menu-bridal";
+import { SalonNavLink } from "./salon-nav-link";
 
 const navLinks = [
   { label: "Collections", href: "/collections" },
+  { label: "Bridal", href: "/collections?tag=bridal" },
   { label: "Rings", href: "/collections/rings" },
   { label: "Necklaces", href: "/collections/necklaces" },
   { label: "Earrings", href: "/collections/earrings" },
@@ -56,15 +59,20 @@ export async function Header() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-gray-700 hover:text-brand-navy transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) =>
+              link.label === "Bridal" ? (
+                <MegaMenuBridal key="bridal" />
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium text-gray-700 hover:text-brand-navy transition-colors"
+                >
+                  {link.label}
+                </Link>
+              )
+            )}
+            <SalonNavLink className="text-sm font-medium text-gray-700 hover:text-brand-navy transition-colors" />
           </nav>
 
           {/* Desktop search bar — sits between nav and icons */}

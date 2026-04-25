@@ -9,6 +9,8 @@ import { CategoryGrid } from "@/components/storefront/category-grid";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { ReviewsSection } from "@/components/storefront/reviews-section";
 import { InstagramSection, type BeholdPost } from "@/components/storefront/instagram-section";
+import { BridalStorySection } from "@/components/storefront/bridal-story-section";
+import { BridalSplitSection } from "@/components/storefront/bridal-split-section";
 import { FadeIn } from "@/components/motion/fade-in";
 
 export const revalidate = 3600;
@@ -128,6 +130,8 @@ export default async function HomePage() {
         </section>
       )}
 
+      <BridalStorySection />
+
       {sectionProducts
         .filter((sp) => sp.products.length > 0)
         .map(({ section, products }) => (
@@ -189,6 +193,8 @@ export default async function HomePage() {
           </Link>
         </FadeIn>
       </section>
+
+      <BridalSplitSection />
 
       {instagramHandle && instagramPosts.length > 0 && (
         <InstagramSection handle={instagramHandle} posts={instagramPosts} />

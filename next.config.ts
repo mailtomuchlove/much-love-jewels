@@ -25,7 +25,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       // behold.pictures has no subdomain — must list bare domain alongside wildcard
-      "img-src 'self' data: blob: https://res.cloudinary.com https://*.cdninstagram.com https://*.fbcdn.net https://behold.pictures https://*.behold.pictures",
+      "img-src 'self' data: blob: https://res.cloudinary.com https://*.cdninstagram.com https://*.fbcdn.net https://behold.pictures https://*.behold.pictures https://images.unsplash.com",
       // media-src must be explicit — videos fall back to default-src 'self' otherwise
       "media-src https://res.cloudinary.com",
       // Sentry replay creates a Web Worker from a blob URL

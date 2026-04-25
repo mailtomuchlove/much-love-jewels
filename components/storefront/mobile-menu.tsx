@@ -8,6 +8,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuthModal } from "@/lib/auth-modal-context";
+import { SalonNavLink } from "./salon-nav-link";
 
 interface MobileMenuProps {
   navLinks: { label: string; href: string }[];
@@ -69,6 +70,10 @@ export function MobileMenu({ navLinks, user }: MobileMenuProps) {
                 {link.label}
               </Link>
             ))}
+            <SalonNavLink
+              className="py-2.5 text-base font-medium text-brand-gold hover:text-brand-navy transition-colors border-b border-brand-border"
+              onNavigate={() => setOpen(false)}
+            />
             {user ? (
               <>
                 <Link

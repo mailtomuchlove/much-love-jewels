@@ -7,6 +7,7 @@ import { WishlistInitializer } from "@/components/storefront/wishlist-initialize
 import { AuthModalProvider } from "@/lib/auth-modal-context";
 import { AuthModal } from "@/components/storefront/auth-modal";
 import { AuthModalTrigger } from "@/components/storefront/auth-modal-trigger";
+import { SalonTransitionOverlay } from "@/components/storefront/salon-transition-overlay";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,6 +36,7 @@ export default async function StorefrontLayout({
         <Footer />
         <CartDrawerLazy />
         <WhatsAppButton />
+        <SalonTransitionOverlay />
         <WishlistInitializer productIds={wishlistIds} />
         <Toaster />
         <AuthModal />
