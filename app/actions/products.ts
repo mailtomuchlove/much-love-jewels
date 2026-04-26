@@ -65,8 +65,11 @@ async function generateProductCode(
 
 // ── Rename uploaded images to product_code folder ────────────────────────────
 
+const VIDEO_EXTS = [".mp4", ".webm", ".mov", ".ogg", ".mkv"];
+
 async function relocateImages(
   publicIds: string[],
+  originalUrls: string[],
   categorySlug: string,
   productCode: string
 ): Promise<{ images: string[]; image_public_ids: string[] }> {
@@ -76,13 +79,10 @@ async function relocateImages(
     publicIds.map(async (oldId) => {
       const filename = oldId.split("/").pop()!;
       const newId = `muchlovejewels/products/${categorySlug}/${productCode}/${filename}`;
-      // Detect resource type from public_id path (videos have resource_type stored separately — default image)
-      try {
-        return await renameCloudinaryAsset(oldId, newId, "image");
-      } catch {
-        // Try as video if image rename fails
-        return await renameCloudinaryAsset(oldId, newId, "video");
-      }
+      const resourceType = VIDEO_EXTS.some((ext) => filename.toLowerCase().endsWith(ext))
+        ? "video"
+        : "image";
+      return renameCloudinaryAsset(oldId, newId, resourceType);
     })
   );
 
@@ -94,8 +94,8 @@ async function relocateImages(
       images.push(r.value.secure_url);
       image_public_ids.push(r.value.public_id);
     } else {
-      // Keep original if rename failed
-      images.push("");
+      // Keep the original URL/id intact so no broken images are stored
+      images.push(originalUrls[i] ?? "");
       image_public_ids.push(publicIds[i]);
     }
   });
@@ -132,7 +132,7 @@ export async function createProduct(
 
   // Relocate images to product_code subfolder
   const { images, image_public_ids } = data.image_public_ids.length
-    ? await relocateImages(data.image_public_ids, categorySlug, productCode)
+    ? await relocateImages(data.image_public_ids, data.images, categorySlug, productCode)
     : { images: data.images, image_public_ids: data.image_public_ids };
 
   const { data: product, error } = await supabase

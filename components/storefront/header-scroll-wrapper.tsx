@@ -7,19 +7,18 @@ export function HeaderScrollWrapper({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
-    // Run once immediately in case page loaded mid-scroll
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div className="relative">
-      {/* Composited opacity fade — avoids painting box-shadow/bg-color on every scroll tick */}
+    <div className="fixed top-0 left-0 right-0 z-40">
+      {/* Dark navy bg fades in on scroll, invisible at top */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 bg-white/95 shadow-md [backdrop-filter:blur(8px)] transition-opacity duration-300 ${
-          scrolled ? "opacity-100" : "opacity-0"
+        className={`pointer-events-none absolute inset-0 [backdrop-filter:blur(12px)] border-b border-white/10 transition-opacity duration-500 ${
+          scrolled ? "opacity-100 bg-brand-navy/90" : "opacity-0"
         }`}
       />
       {children}

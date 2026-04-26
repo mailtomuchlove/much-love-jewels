@@ -115,8 +115,8 @@ export function HeroBanner({ slides: dbSlides }: { slides?: DbSlide[] }) {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-brand-navy"
-      style={{ minHeight: "320px", height: "clamp(320px, 55vh, 580px)" }}
+      className="relative w-full overflow-hidden bg-brand-navy -mt-[60px] md:-mt-[72px]"
+      style={{ minHeight: "380px", height: "clamp(380px, 62vh, 640px)" }}
       aria-label="Hero banner"
     >
       {/* Background media — crossfade via AnimatePresence */}

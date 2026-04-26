@@ -23,7 +23,7 @@ export function CartButton({ serverCount }: CartButtonProps) {
     <button
       onClick={toggle}
       aria-label={`Open cart (${count} items)`}
-      className="relative h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+      className="relative h-10 w-10 flex items-center justify-center rounded-md text-white/75 hover:text-white hover:bg-white/10 transition-colors"
     >
       <ShoppingBag className="h-5 w-5" />
       {count > 0 && (

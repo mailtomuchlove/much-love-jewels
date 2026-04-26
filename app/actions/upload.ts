@@ -45,7 +45,7 @@ export async function uploadProductImage(
   const parts = [categoryName, productName]
     .map(toFolderSlug)
     .filter(Boolean);
-  const subfolder = parts.length ? parts.join("/") : undefined;
+  const subfolder = parts.length ? parts.join("/") : "staging";
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -125,6 +125,41 @@ export async function uploadHeroBannerImage(
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await uploadToCloudinary(buffer, "hero-banners", "live");
+    return {
+      success: true,
+      data: {
+        secure_url: result.secure_url,
+        public_id: result.public_id,
+        resource_type: result.resource_type,
+      },
+    };
+  } catch (err) {
+    return { success: false, error: (err as Error).message ?? "Upload failed" };
+  }
+}
+
+export async function uploadSectionImage(
+  formData: FormData
+): Promise<ActionResult<UploadResult>> {
+  await requireAdmin();
+
+  const file = formData.get("file") as File | null;
+  if (!file) return { success: false, error: "No file provided" };
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { success: false, error: "Only JPEG, PNG, or WebP images are allowed" };
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return { success: false, error: "Image must be smaller than 10 MB" };
+  }
+
+  const tag = (formData.get("tag") as string | null) ?? "";
+  const subfolder = toFolderSlug(tag) || "general";
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const result = await uploadToCloudinary(buffer, "sections", subfolder, {
+      transformation: [{ width: 2400, height: 800, crop: "limit" }],
+    });
     return {
       success: true,
       data: {

@@ -18,16 +18,21 @@ export function SalonHero() {
   const scrollHintRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Parallax on hero bg while scrolling
-      if (bgRef.current) {
-        gsap.to(bgRef.current, {
-          y: "20%",
-          ease: "none",
-          scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
-        });
-      }
-    }, heroRef);
+    let ctx: ReturnType<typeof gsap.context> | null = null;
+    try {
+      ctx = gsap.context(() => {
+        // Parallax on hero bg while scrolling — skip if cross-origin frame blocks window.constructor
+        if (bgRef.current) {
+          gsap.to(bgRef.current, {
+            y: "20%",
+            ease: "none",
+            scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
+          });
+        }
+      }, heroRef);
+    } catch {
+      // ScrollTrigger iframe detection throws SecurityError in cross-origin frames; skip parallax
+    }
 
     // Entry animations (CSS-driven via loaded class)
     const timer = setTimeout(() => {
@@ -42,7 +47,7 @@ export function SalonHero() {
 
     return () => {
       clearTimeout(timer);
-      ctx.revert();
+      ctx?.revert();
     };
   }, []);
 

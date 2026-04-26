@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ShieldCheck, Truck, Sparkles, PackageCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -137,9 +138,25 @@ export default async function HomePage() {
         .map(({ section, products }) => (
           <section key={section.id} className="section">
             <div className="container-site">
+              {/* Banner image */}
+              {section.image_url && (
+                <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden mb-8 md:mb-10 border border-brand-border">
+                  <Image
+                    src={section.image_url}
+                    alt={section.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 1200px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/30 to-transparent" />
+                </div>
+              )}
               <div className="flex items-end justify-between mb-8 md:mb-10">
                 <div>
                   <h2 className="heading-h2">{section.title}</h2>
+                  {section.subtitle && (
+                    <p className="text-sm text-brand-text-muted mt-1.5">{section.subtitle}</p>
+                  )}
                   <div className="divider-gold mt-3" />
                 </div>
                 <Link href={`/collections?tag=${encodeURIComponent(section.tag)}`} aria-label={`View all ${section.title}`} className="text-sm font-medium text-brand-navy hover:text-brand-gold transition-colors underline underline-offset-4">

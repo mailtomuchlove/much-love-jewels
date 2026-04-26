@@ -8,6 +8,8 @@ export type HomepageSection = {
   id: string;
   title: string;
   tag: string;
+  subtitle: string | null;
+  image_url: string | null;
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -56,6 +58,8 @@ export async function getDistinctProductTags(): Promise<string[]> {
 export async function createHomepageSection(form: {
   title: string;
   tag: string;
+  subtitle?: string | null;
+  image_url?: string | null;
   sort_order: number;
   is_active: boolean;
 }) {
@@ -64,6 +68,8 @@ export async function createHomepageSection(form: {
   const { error } = await supabase.from("homepage_sections").insert({
     title: form.title.trim(),
     tag: form.tag.trim().toLowerCase(),
+    subtitle: form.subtitle?.trim() || null,
+    image_url: form.image_url || null,
     sort_order: form.sort_order,
     is_active: form.is_active,
   });
@@ -77,6 +83,8 @@ export async function updateHomepageSection(
   form: {
     title: string;
     tag: string;
+    subtitle?: string | null;
+    image_url?: string | null;
     sort_order: number;
     is_active: boolean;
   }
@@ -88,6 +96,8 @@ export async function updateHomepageSection(
     .update({
       title: form.title.trim(),
       tag: form.tag.trim().toLowerCase(),
+      subtitle: form.subtitle?.trim() || null,
+      image_url: form.image_url || null,
       sort_order: form.sort_order,
       is_active: form.is_active,
     })

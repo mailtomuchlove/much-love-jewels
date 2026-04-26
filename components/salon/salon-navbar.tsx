@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { JewelsNavLink } from "./jewels-nav-link";
 
 const navLinks = [
   { label: "Atelier", href: "#story" },
@@ -97,6 +98,45 @@ export function SalonNavbar() {
         </ul>
 
         <div className="flex items-center gap-4">
+
+          {/* Jewellery CTA — desktop only */}
+          <div
+            className="hidden md:flex flex-col items-center gap-1.5 border-r pr-4"
+            style={{ borderColor: "rgba(184,151,90,0.3)" }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: 8,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: scrolled ? "rgba(107,98,89,0.6)" : "rgba(255,255,255,0.45)",
+                transition: "color 0.4s",
+              }}
+            >
+              Complete your look with
+            </span>
+            <JewelsNavLink
+              className="relative overflow-hidden flex items-center gap-1 group/jewels"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                color: "#D4B47A",
+                border: "1px solid rgba(212,180,122,0.6)",
+                padding: "4px 12px",
+                textDecoration: "none",
+              }}
+            >
+              <span className="absolute inset-0 bg-[#D4B47A] -translate-x-full group-hover/jewels:translate-x-0 transition-transform duration-300 ease-out" aria-hidden="true" />
+              <span className="relative z-10 transition-colors duration-200 group-hover/jewels:text-[#1C1916]">
+                Our Jewels →
+              </span>
+            </JewelsNavLink>
+          </div>
+
           <Link
             href="/salon/book"
             className="hidden md:inline-block"

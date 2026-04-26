@@ -12,9 +12,9 @@ export function HeaderAuthButton({ isLoggedIn }: { isLoggedIn: boolean }) {
       <Link
         href="/account"
         aria-label="My Account"
-        className="h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+        className="h-10 w-10 flex items-center justify-center rounded-md text-white/75 hover:text-white hover:bg-white/10 transition-colors"
       >
-        <User className="h-5 w-5" />
+        <User className="h-[18px] w-[18px]" />
       </Link>
     );
   }
@@ -23,9 +23,9 @@ export function HeaderAuthButton({ isLoggedIn }: { isLoggedIn: boolean }) {
     <button
       onClick={() => open("login")}
       aria-label="Sign In"
-      className="h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+      className="h-10 w-10 flex items-center justify-center rounded-md text-white/75 hover:text-white hover:bg-white/10 transition-colors"
     >
-      <User className="h-5 w-5" />
+      <User className="h-[18px] w-[18px]" />
     </button>
   );
 }

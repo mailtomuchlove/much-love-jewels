@@ -8,6 +8,7 @@ import { AuthModalProvider } from "@/lib/auth-modal-context";
 import { AuthModal } from "@/components/storefront/auth-modal";
 import { AuthModalTrigger } from "@/components/storefront/auth-modal-trigger";
 import { SalonTransitionOverlay } from "@/components/storefront/salon-transition-overlay";
+import { JewelsArrivalOverlay } from "@/components/storefront/jewels-arrival-overlay";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,11 +33,12 @@ export default async function StorefrontLayout({
     <AuthModalProvider>
       <div className="flex min-h-screen flex-col">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pt-[60px] md:pt-[72px]">{children}</main>
         <Footer />
         <CartDrawerLazy />
         <WhatsAppButton />
         <SalonTransitionOverlay />
+        <JewelsArrivalOverlay />
         <WishlistInitializer productIds={wishlistIds} />
         <Toaster />
         <AuthModal />

@@ -4,6 +4,7 @@ import { LenisProvider } from "@/components/salon/lenis-provider";
 import { SalonNavbar } from "@/components/salon/salon-navbar";
 import { SalonFooter } from "@/components/salon/salon-footer";
 import { SalonCursor } from "@/components/salon/salon-cursor";
+import { JewelsTransitionOverlay } from "@/components/salon/jewels-transition-overlay";
 
 export const metadata: Metadata = {
   title: {
@@ -24,6 +25,7 @@ export default function SalonLayout({ children }: { children: React.ReactNode })
         <SalonNavbar />
         {children}
         <SalonFooter />
+        <JewelsTransitionOverlay />
       </LenisProvider>
     </div>
   );

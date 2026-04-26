@@ -1,17 +1,15 @@
 import Link from "next/link";
-import { Heart, Search } from "lucide-react";
+import { Heart } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "./mobile-menu";
 import { CartButton } from "./cart-button";
 import { SearchBar } from "./search-bar";
 import { HeaderScrollWrapper } from "./header-scroll-wrapper";
 import { HeaderAuthButton } from "./header-auth-button";
-import { MegaMenuBridal } from "./mega-menu-bridal";
-import { SalonNavLink } from "./salon-nav-link";
+import { SalonCta } from "./salon-cta";
 
 const navLinks = [
   { label: "Collections", href: "/collections" },
-  { label: "Bridal", href: "/collections?tag=bridal" },
   { label: "Rings", href: "/collections/rings" },
   { label: "Necklaces", href: "/collections/necklaces" },
   { label: "Earrings", href: "/collections/earrings" },
@@ -38,77 +36,66 @@ export async function Header() {
 
   return (
     <HeaderScrollWrapper>
-    <header className="sticky top-0 z-40 border-b border-brand-border bg-white">
-      <div className="container-site">
-        <div className="flex h-[60px] items-center justify-between md:h-[72px]">
-          {/* Mobile menu trigger — visible only on mobile, sits before logo */}
-          <div className="md:hidden">
-            <MobileMenu
-              navLinks={navLinks}
-              user={user ? { name: (user.user_metadata?.name as string | undefined) ?? user.email ?? null } : null}
-            />
-          </div>
-
+      <header className="relative">
+        <div
+          className="flex items-center justify-between h-[60px] md:h-[72px]"
+          style={{ padding: "0 clamp(16px, 4vw, 56px)" }}
+        >
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <span className="font-poppins text-lg font-bold text-brand-navy md:text-xl">
+            <span className="font-poppins text-lg md:text-xl font-bold text-white leading-none">
               Much Love{" "}
               <span className="text-brand-gold">Jewels</span>
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
-            {navLinks.map((link) =>
-              link.label === "Bridal" ? (
-                <MegaMenuBridal key="bridal" />
-              ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-gray-700 hover:text-brand-navy transition-colors"
-                >
-                  {link.label}
-                </Link>
-              )
-            )}
-            <SalonNavLink className="text-sm font-medium text-gray-700 hover:text-brand-navy transition-colors" />
+          <nav className="hidden md:flex items-center gap-8 lg:gap-10" aria-label="Main navigation">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="relative group text-[11px] font-normal tracking-[0.18em] uppercase text-white/75 hover:text-white transition-colors duration-300"
+              >
+                {link.label}
+                <span className="absolute left-0 bottom-[-3px] h-[1px] w-0 group-hover:w-full transition-all duration-300 bg-brand-gold" />
+              </Link>
+            ))}
           </nav>
 
-          {/* Desktop search bar — sits between nav and icons */}
-          <div className="hidden sm:flex flex-1 max-w-[200px] md:max-w-[240px] lg:max-w-[300px] mx-3">
-            <SearchBar className="w-full" />
+          {/* Search bar — desktop only */}
+          <div className="hidden md:flex flex-1 max-w-[180px] lg:max-w-[240px] mx-4">
+            <SearchBar variant="dark" className="w-full" />
           </div>
 
-          {/* Right icons */}
+          {/* Right side */}
           <div className="flex items-center gap-1 md:gap-2">
-            {/* Mobile search icon — navigates to /search page */}
-            <Link
-              href="/search"
-              aria-label="Search"
-              className="sm:hidden h-11 w-11 flex items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
-            >
-              <Search className="h-5 w-5" />
-            </Link>
-
-            {/* Wishlist */}
+            {/* Wishlist — desktop only */}
             <Link
               href="/account?tab=wishlist"
               aria-label="Wishlist"
-              className="hidden sm:flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:text-brand-navy hover:bg-brand-cream transition-colors"
+              className="hidden md:flex h-10 w-10 items-center justify-center rounded-md text-white/75 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-[18px] w-[18px]" />
             </Link>
 
             {/* Account */}
             <HeaderAuthButton isLoggedIn={!!user} />
 
-            {/* Cart (Client Component — controls drawer) */}
+            {/* Cart */}
             <CartButton serverCount={cartCount} />
+
+            {/* Salon CTA — desktop only */}
+            <SalonCta />
+
+            {/* Mobile menu — trigger sits at far right */}
+            <MobileMenu
+              navLinks={navLinks}
+              user={user ? { name: (user.user_metadata?.name as string | undefined) ?? user.email ?? null } : null}
+            />
           </div>
         </div>
-      </div>
-    </header>
+      </header>
     </HeaderScrollWrapper>
   );
 }

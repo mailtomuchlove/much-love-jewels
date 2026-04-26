@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,13 +34,17 @@ import {
   deleteHomepageSection,
   type HomepageSection,
 } from "@/app/actions/homepage-sections";
+import { uploadSectionImage, deleteImage } from "@/app/actions/upload";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Layers, Tag } from "lucide-react";
+import { Plus, Pencil, Trash2, Layers, Tag, ImagePlus, X, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const EMPTY_FORM = {
   title: "",
   tag: "",
+  subtitle: "",
+  image_url: "",
   sort_order: 0,
   is_active: true,
 };
@@ -58,6 +62,9 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
   const [customTag, setCustomTag] = useState("");
   const [useCustomTag, setUseCustomTag] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePublicId, setImagePublicId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   function openCreate() {
@@ -65,6 +72,7 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
     setForm(EMPTY_FORM);
     setCustomTag("");
     setUseCustomTag(false);
+    setImagePublicId(null);
     setDialogOpen(true);
   }
 
@@ -73,9 +81,12 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
     const tagInList = availableTags.includes(s.tag);
     setUseCustomTag(!tagInList);
     setCustomTag(tagInList ? "" : s.tag);
+    setImagePublicId(null);
     setForm({
       title: s.title,
       tag: tagInList ? s.tag : "",
+      subtitle: s.subtitle ?? "",
+      image_url: s.image_url ?? "",
       sort_order: s.sort_order,
       is_active: s.is_active,
     });
@@ -86,6 +97,36 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
     return useCustomTag ? customTag.trim().toLowerCase() : form.tag;
   }
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (fileRef.current) fileRef.current.value = "";
+
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("tag", resolvedTag() || "general");
+
+    const result = await uploadSectionImage(fd);
+    setUploading(false);
+
+    if (!result.success) {
+      toast.error(result.error ?? "Upload failed");
+      return;
+    }
+    setForm((f) => ({ ...f, image_url: result.data.secure_url }));
+    setImagePublicId(result.data.public_id);
+    toast.success("Banner uploaded");
+  }
+
+  async function handleRemoveImage() {
+    if (imagePublicId) {
+      await deleteImage(imagePublicId);
+    }
+    setForm((f) => ({ ...f, image_url: "" }));
+    setImagePublicId(null);
+  }
+
   async function handleSave() {
     const tag = resolvedTag();
     if (!form.title.trim()) { toast.error("Section title is required."); return; }
@@ -93,7 +134,12 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
 
     setSaving(true);
     try {
-      const payload = { ...form, tag };
+      const payload = {
+        ...form,
+        tag,
+        subtitle: form.subtitle || null,
+        image_url: form.image_url || null,
+      };
       if (editing) {
         await updateHomepageSection(editing.id, payload);
         toast.success("Section updated.");
@@ -133,11 +179,13 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
         </Button>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editing ? "Edit Section" : "New Homepage Section"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
+
+              {/* Title */}
               <div className="space-y-1.5">
                 <Label htmlFor="title">Section Title *</Label>
                 <Input
@@ -149,6 +197,19 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
                 <p className="text-xs text-gray-500">Shown as the section heading on the homepage.</p>
               </div>
 
+              {/* Subtitle */}
+              <div className="space-y-1.5">
+                <Label htmlFor="subtitle">Subtitle <span className="text-gray-400 font-normal">(optional)</span></Label>
+                <Input
+                  id="subtitle"
+                  placeholder="e.g. Curated for the modern bride"
+                  value={form.subtitle}
+                  onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
+                />
+                <p className="text-xs text-gray-500">Short line shown below the heading.</p>
+              </div>
+
+              {/* Tag */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label>Tag *</Label>
@@ -190,11 +251,55 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
                     </SelectContent>
                   </Select>
                 )}
-                <p className="text-xs text-gray-500">
-                  Products with this tag will appear in this section.
-                </p>
+                <p className="text-xs text-gray-500">Products with this tag will appear in this section.</p>
               </div>
 
+              {/* Banner image */}
+              <div className="space-y-1.5">
+                <Label>Banner Image <span className="text-gray-400 font-normal">(optional)</span></Label>
+                {form.image_url ? (
+                  <div className="relative rounded-lg overflow-hidden border border-gray-200 aspect-[3/1]">
+                    <Image
+                      src={form.image_url}
+                      alt="Section banner"
+                      fill
+                      className="object-cover"
+                      sizes="480px"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors"
+                      title="Remove banner"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 py-6 text-sm text-gray-500 hover:border-brand-navy/40 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                  >
+                    {uploading ? (
+                      <><Loader2 className="h-5 w-5 animate-spin" /> Uploading…</>
+                    ) : (
+                      <><ImagePlus className="h-5 w-5 text-gray-400" /> Click to upload banner image</>
+                    )}
+                  </button>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+                <p className="text-xs text-gray-500">Shown as a wide banner above the product grid. JPEG/PNG/WebP, max 10 MB.</p>
+              </div>
+
+              {/* Sort order + active */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="sort_order">Sort Order</Label>
@@ -222,7 +327,7 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
 
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleSave} disabled={saving}>
+                <Button onClick={handleSave} disabled={saving || uploading}>
                   {saving ? "Saving…" : "Save Section"}
                 </Button>
               </div>
@@ -246,6 +351,13 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
               key={s.id}
               className={`flex items-center gap-4 rounded-lg border bg-white p-4 shadow-sm ${!s.is_active ? "opacity-50" : ""}`}
             >
+              {/* Banner thumbnail */}
+              {s.image_url && (
+                <div className="relative flex-shrink-0 w-16 h-10 rounded overflow-hidden border border-gray-200">
+                  <Image src={s.image_url} alt="" fill className="object-cover" sizes="64px" />
+                </div>
+              )}
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs text-gray-400 font-mono">#{i + 1}</span>
@@ -254,6 +366,9 @@ export function SectionsClient({ sections: initial, availableTags }: SectionsCli
                   )}
                 </div>
                 <p className="font-medium text-sm text-gray-900">{s.title}</p>
+                {s.subtitle && (
+                  <p className="text-xs text-gray-400 mt-0.5 truncate">{s.subtitle}</p>
+                )}
                 <div className="flex items-center gap-1 mt-1">
                   <Tag className="h-3 w-3 text-brand-gold" />
                   <span className="text-xs text-brand-navy font-mono">{s.tag}</span>

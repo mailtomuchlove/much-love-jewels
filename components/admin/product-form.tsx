@@ -196,19 +196,6 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         {/* ── Left column ── */}
         <div className="lg:col-span-7 space-y-4">
 
-          {/* Images */}
-          <Card title="Product Images / Videos" required>
-            <ImageUpload
-              value={images}
-              onChange={setImages}
-              acceptVideo
-              uploadContext={{
-                categoryName: categories.find((c) => c.id === form.category_id)?.name,
-                productName: form.name || undefined,
-              }}
-            />
-          </Card>
-
           {/* Basic info */}
           <Card title="Basic Information">
             <Field label="Product Name" required>
@@ -297,6 +284,19 @@ export function ProductForm({ categories, product }: ProductFormProps) {
                 </Field>
               )}
             </div>
+          </Card>
+
+          {/* Images — placed after Basic Info so category + name are filled first */}
+          <Card title="Product Images / Videos" required>
+            <ImageUpload
+              value={images}
+              onChange={setImages}
+              acceptVideo
+              uploadContext={{
+                categoryName: categories.find((c) => c.id === form.category_id)?.name,
+                productName: form.name || undefined,
+              }}
+            />
           </Card>
         </div>
 
