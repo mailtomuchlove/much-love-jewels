@@ -76,7 +76,4 @@ export const ORDER_STATUS_COLORS: Record<string, string> = {
   refunded: "bg-gray-50 text-gray-700",
 };
 
-export const RAZORPAY_SCRIPT_URL =
-  "https://checkout.razorpay.com/v1/checkout.js";
-
 export const WHATSAPP_URL = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=Hi!%20I%20need%20help%20with%20my%20jewellery%20order.`;

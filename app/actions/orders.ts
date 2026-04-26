@@ -352,39 +352,6 @@ export async function getUserOrders() {
   return data ?? [];
 }
 
-export async function cancelOrder(orderId: string): Promise<ActionResult<void>> {
-  const profile = await requireAuth();
-
-  const supabase = await createClient();
-
-  const { data: order } = await supabase
-    .from("orders")
-    .select("id, status, payment_status, user_id")
-    .eq("id", orderId)
-    .eq("user_id", profile.id)
-    .maybeSingle();
-
-  if (!order) return { success: false, error: "Order not found" };
-
-  // Only allow cancelling pending/confirmed orders that haven't been paid
-  if (order.payment_status === "paid") {
-    return { success: false, error: "Paid orders cannot be cancelled. Contact support for a refund." };
-  }
-  if (!["pending", "confirmed"].includes(order.status)) {
-    return { success: false, error: "This order can no longer be cancelled." };
-  }
-
-  const { error } = await supabase
-    .from("orders")
-    .update({ status: "cancelled" })
-    .eq("id", orderId)
-    .eq("user_id", profile.id);
-
-  if (error) return { success: false, error: error.message };
-
-  revalidatePath("/account");
-  return { success: true, data: undefined };
-}
 
 export async function getOrderById(orderId: string) {
   const profile = await requireAuth();

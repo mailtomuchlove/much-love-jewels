@@ -64,11 +64,6 @@ export function formatDate(dateString: string): string {
 }
 
 // ─── String Helpers ───────────────────────────────────────
-export function truncate(str: string, length: number): string {
-  if (str.length <= length) return str;
-  return str.slice(0, length).trimEnd() + "…";
-}
-
 export function formatAddress(address: {
   line1: string;
   line2?: string | null;

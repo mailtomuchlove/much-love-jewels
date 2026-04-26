@@ -102,18 +102,6 @@ export function extractPublicId(url: string): string | null {
   }
 }
 
-/**
- * Build an optimised Cloudinary image URL.
- */
-export function cloudinaryUrl(
-  publicId: string,
-  width: number,
-  height?: number
-): string {
-  const h = height ? `,h_${height}` : "";
-  return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width}${h},c_fill/${publicId}`;
-}
-
 /** Slugify a string for use as a folder segment */
 export function toFolderSlug(value: string): string {
   return value

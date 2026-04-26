@@ -15,16 +15,13 @@ export const addressSchema = z.object({
   is_default: z.boolean().optional().default(false),
 });
 
-export const reviewSchema = z.object({
-  rating: z.number().int().min(1).max(5),
-  comment: z.string().max(1000).optional(),
-});
+export type AddressFormData = z.infer<typeof addressSchema>;
 
 export const productSchema = z.object({
   name: z.string().min(2, "Name required"),
   slug: z.string().min(2, "Slug required"),
   description: z.string().optional(),
-  price: z.number().positive("Price must be positive"), // in rupees (converted to paise on save)
+  price: z.number().positive("Price must be positive"),
   compare_price: z.number().positive().optional().nullable(),
   category_id: z.string().uuid("Invalid category"),
   stock: z.number().int().min(0),
@@ -36,16 +33,3 @@ export const productSchema = z.object({
   meta_description: z.string().max(160).optional().nullable(),
   tags: z.array(z.string()).optional().default([]),
 });
-
-export const categorySchema = z.object({
-  name: z.string().min(2),
-  slug: z.string().min(2),
-  description: z.string().optional().nullable(),
-  is_active: z.boolean().default(true),
-  sort_order: z.number().int().default(0),
-});
-
-export type AddressFormData = z.infer<typeof addressSchema>;
-export type ReviewFormData = z.infer<typeof reviewSchema>;
-export type ProductFormData = z.infer<typeof productSchema>;
-export type CategoryFormData = z.infer<typeof categorySchema>;

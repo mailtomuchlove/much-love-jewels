@@ -116,14 +116,3 @@ export async function deleteHomepageSection(id: string) {
   revalidatePath("/admin/sections");
 }
 
-export async function reorderHomepageSections(ids: string[]) {
-  await requireAdmin();
-  const supabase = (await createClient()) as unknown as AnyClient;
-  await Promise.all(
-    ids.map((id, i) =>
-      supabase.from("homepage_sections").update({ sort_order: i }).eq("id", id)
-    )
-  );
-  revalidatePath("/");
-  revalidatePath("/admin/sections");
-}

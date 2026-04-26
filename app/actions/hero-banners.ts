@@ -132,17 +132,3 @@ export async function deleteHeroBanner(id: string): Promise<ActionResult> {
   return { success: true, data: undefined };
 }
 
-export async function reorderHeroBanners(ids: string[]): Promise<ActionResult> {
-  await requireAdmin();
-  const supabase = await createClient();
-  const results = await Promise.all(
-    ids.map((id, i) =>
-      supabase.from("hero_banners").update({ sort_order: i }).eq("id", id)
-    )
-  );
-  const failed = results.find((r) => r.error);
-  if (failed?.error) return { success: false, error: failed.error.message };
-  revalidatePath("/");
-  revalidatePath("/admin/hero");
-  return { success: true, data: undefined };
-}
