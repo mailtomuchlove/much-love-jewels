@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function JewelsTransitionOverlay() {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -19,10 +21,12 @@ export function JewelsTransitionOverlay() {
 
       const t1 = setTimeout(() => setActive(true), 60);
       const t2 = setTimeout(() => {
-        // Hard navigation avoids "router not initialized" error that occurs
-        // when router.push() is called cross-layout inside a setTimeout.
-        // sessionStorage survives hard nav so JewelsArrivalOverlay still works.
-        window.location.href = href;
+        // startTransition is required when calling router.push() outside React's
+        // synchronous event handling (e.g. inside setTimeout). Without it, Next.js
+        // throws "Router action dispatched before initialization" in dev/Turbopack.
+        startTransition(() => {
+          router.push(href);
+        });
       }, 1600);
 
       timers.current = [t1, t2];
@@ -33,7 +37,7 @@ export function JewelsTransitionOverlay() {
       window.removeEventListener("goto-jewels", handler);
       clearAll();
     };
-  }, []);
+  }, [router]);
 
   if (!visible) return null;
 
