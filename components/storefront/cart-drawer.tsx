@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartUI, useGuestCart } from "@/store/cart-store";
+import type { LocalCartItem } from "@/types";
 import { createClient } from "@/lib/supabase/client";
 import { removeFromCartByProduct, updateCartQuantityByProduct } from "@/app/actions/cart";
 import { formatPrice } from "@/lib/utils";
@@ -18,7 +19,7 @@ import { useRouter } from "next/navigation";
 
 export function CartDrawer() {
   const { isOpen, close } = useCartUI();
-  const { items, addItem, removeItem, updateQuantity, getTotal, itemCount } = useGuestCart();
+  const { items, addItem, removeItem, updateQuantity, getTotal, itemCount, setItems } = useGuestCart();
   const userIdRef = useRef<string | null>(null);
   const { open: openAuthModal } = useAuthModal();
   const router = useRouter();
@@ -32,6 +33,37 @@ export function CartDrawer() {
   useEffect(() => {
     if (isOpen) lockScroll();
     return () => unlockScroll();
+  }, [isOpen]);
+
+  // Every time the drawer opens for an authenticated user, sync from DB.
+  // This keeps the cart consistent across multiple tabs and browsers.
+  // Optimistically-added items not yet written to DB are preserved by merging.
+  useEffect(() => {
+    if (!isOpen) return;
+    createClient().auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      userIdRef.current = user.id;
+      const { data } = await createClient()
+        .from("cart_items")
+        .select(
+          "product_id, variant_id, quantity, products(id, name, slug, price, images, image_public_ids), product_variants(id, label, price_adjustment)"
+        )
+        .order("created_at", { ascending: true });
+      const dbItems = (data ?? []).map((item) => ({
+        product_id: item.product_id,
+        variant_id: item.variant_id as string | null,
+        quantity: item.quantity,
+        product: (item.products as LocalCartItem["product"]) ?? undefined,
+        variant: (item.product_variants as LocalCartItem["variant"]) ?? undefined,
+      }));
+      // Keep optimistically-added items that haven't reached DB yet
+      const dbKeys = new Set(dbItems.map((i) => `${i.product_id}:${i.variant_id}`));
+      const optimistic = useGuestCart.getState().items.filter(
+        (i) => !dbKeys.has(`${i.product_id}:${i.variant_id}`)
+      );
+      setItems([...dbItems, ...optimistic]);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Hydrate items that were stored without product data (existing localStorage carts)

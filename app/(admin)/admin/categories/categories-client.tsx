@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Tag, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { isAllowedImageUrl } from "@/lib/image-utils";
+import { generateSlug } from "@/lib/utils";
 
 type CategoryRow = {
   id: string;
@@ -60,6 +61,9 @@ export function CategoriesClient({
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
+  // Sync when router.refresh() re-fetches the server component with updated data
+  useEffect(() => { setCategories(initial); }, [initial]);
+
   function openNew() {
     setEditing(null);
     setForm(EMPTY_FORM);
@@ -89,7 +93,7 @@ export function CategoriesClient({
       return;
     }
     setSaving(true);
-    const data = {
+    const payload = {
       name: form.name,
       description: form.description || undefined,
       image_url: form.image_url || undefined,
@@ -97,14 +101,25 @@ export function CategoriesClient({
       sort_order: form.sort_order,
     };
 
-    const result = editing
-      ? await updateCategory(editing.id, data)
-      : await createCategory(data);
-
-    setSaving(false);
-    if (!result.success) {
-      toast.error(result.error);
-      return;
+    if (editing) {
+      const result = await updateCategory(editing.id, payload);
+      setSaving(false);
+      if (!result.success) { toast.error(result.error); return; }
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === editing.id
+            ? { ...c, name: form.name, slug: generateSlug(form.name), description: form.description || null, image_url: form.image_url || null, is_active: form.is_active, sort_order: form.sort_order }
+            : c
+        )
+      );
+    } else {
+      const result = await createCategory(payload);
+      setSaving(false);
+      if (!result.success) { toast.error(result.error); return; }
+      setCategories((prev) => [
+        ...prev,
+        { id: result.data.id, name: form.name, slug: generateSlug(form.name), description: form.description || null, image_url: form.image_url || null, is_active: form.is_active, sort_order: form.sort_order, product_count: 0 },
+      ]);
     }
 
     toast.success(editing ? "Category updated!" : "Category created!");
@@ -119,6 +134,7 @@ export function CategoriesClient({
     } else {
       toast.success("Category deleted");
       setCategories((prev) => prev.filter((c) => c.id !== id));
+      router.refresh();
     }
   }
 

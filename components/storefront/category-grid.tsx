@@ -26,51 +26,45 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
       <div className="container-site">
 
         {/* Header */}
-        <div className="flex items-end justify-between mb-8 md:mb-12">
-          <div>
-            <h2 className="heading-h2">Shop by Collection</h2>
-            <div className="divider-gold mt-3" />
-          </div>
-
-          {showArrows && (
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-brand-text-muted tabular-nums">
-                {page + 1} / {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                  aria-label="Previous"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  disabled={page === totalPages - 1}
-                  aria-label="Next"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="mb-8 md:mb-12">
+          <h2 className="heading-h2">Shop by Collection</h2>
+          <div className="divider-gold mt-3" />
         </div>
 
-        {/* ── Mobile: horizontal scroll (3 visible) ── */}
+        {/* ── Mobile: horizontal scroll ── */}
         <div className="lg:hidden flex gap-5 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
           {categories.map((cat, i) => (
             <CategoryItem key={cat.id} cat={cat} size={100} index={i} />
           ))}
         </div>
 
-        {/* ── Desktop: 6-column page grid ── */}
-        <div className="hidden lg:grid grid-cols-6 gap-6">
-          {pageItems.map((cat, i) => (
-            <CategoryItem key={cat.id} cat={cat} size={160} index={i} />
-          ))}
+        {/* ── Desktop: arrows inline with grid ── */}
+        <div className="hidden lg:flex items-center gap-4">
+          {showArrows && (
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              aria-label="Previous"
+              className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          <div className="grid grid-cols-6 gap-6 flex-1">
+            {pageItems.map((cat, i) => (
+              <CategoryItem key={cat.id} cat={cat} size={160} index={i} />
+            ))}
+          </div>
+          {showArrows && (
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page === totalPages - 1}
+              aria-label="Next"
+              className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-navy shadow-sm transition-all hover:bg-brand-navy hover:text-white hover:border-brand-navy disabled:opacity-25 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
       </div>

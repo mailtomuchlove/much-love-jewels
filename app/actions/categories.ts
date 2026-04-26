@@ -139,5 +139,7 @@ export async function deleteCategory(categoryId: string): Promise<ActionResult<v
   }
 
   revalidatePath("/admin/categories");
+  revalidatePath("/");
+  revalidatePath("/collections");
   return { success: true, data: undefined };
 }

@@ -34,6 +34,7 @@ interface GuestCartStore {
     variantId: string | null,
     quantity: number
   ) => void;
+  setItems: (items: LocalCartItem[]) => void;
   clearCart: () => void;
   getTotal: () => number;
   itemCount: () => number;
@@ -100,6 +101,8 @@ export const useGuestCart = create<GuestCartStore>()(
             ),
           };
         }),
+
+      setItems: (items) => set({ items, lastUpdated: Date.now() }),
 
       clearCart: () => set({ items: [], lastUpdated: Date.now() }),
 
