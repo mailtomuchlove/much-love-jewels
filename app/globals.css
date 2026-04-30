@@ -244,6 +244,18 @@
   .btn-micro { transform: none !important; }
 }
 
+/* ─── Toast (Sonner) — compact stacking fix ───────────────── */
+/*
+  Sonner measures each toast's DOM height and accumulates it in a heights[]
+  array to position subsequent toasts. In React Strict Mode (dev), the effect
+  runs twice, doubling the accumulated height for every non-front toast.
+  This rule uses Sonner's own --index and --front-toast-height CSS vars to
+  subtract the extra offset and keep toasts tightly stacked with a ~4px gap.
+*/
+ol[data-sonner-toaster] li[data-sonner-toast][data-expanded='true'] {
+  margin-top: calc(var(--index) * calc(-1 * var(--front-toast-height) + 4px));
+}
+
 /* ─── Toast (Sonner) — card style with colored left border ─── */
 .mlj-toast {
   @apply !bg-white !border !border-gray-200 !rounded-lg !shadow-sm !gap-2.5 !items-center;

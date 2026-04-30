@@ -46,7 +46,8 @@ export function WishlistButton({ productId, className }: WishlistButtonProps) {
         }
       } else {
         toast.success(
-          result.data?.added ? "Added to wishlist" : "Removed from wishlist"
+          result.data?.added ? "Added to wishlist" : "Removed from wishlist",
+          { id: `wishlist-${productId}` }
         );
       }
     });

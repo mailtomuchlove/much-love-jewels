@@ -52,7 +52,7 @@ export function AddToCartButton({
     });
 
     setAdded(true);
-    toast.success("Added to cart!");
+    toast.success("Added to cart!", { id: `cart-${productId}` });
     open();
     setTimeout(() => setAdded(false), 2000);
 

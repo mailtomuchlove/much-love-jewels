@@ -17,7 +17,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       position="top-right"
       expand
-      visibleToasts={6}
+      gap={4}
+      visibleToasts={5}
       className="toaster group"
       icons={{
         success: (
@@ -49,7 +50,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           // Added !important flags to ensure layout isn't broken by Sonner defaults
-          toast: "group !bg-white !rounded-lg !p-4 !shadow-xl !border-none !relative !overflow-hidden !flex !items-center !gap-4 !min-h-[64px] before:content-[''] before:absolute before:left-0 before:inset-y-0 before:w-[6px] !pl-6",
+          toast: "group !bg-white !rounded-lg !p-4 !shadow-md !border-none !relative !overflow-hidden !flex !items-center !gap-4 !min-h-[64px] before:content-[''] before:absolute before:left-0 before:inset-y-0 before:w-[6px] !pl-6",
           
           success: "before:bg-[#47d764]",
           error: "before:bg-[#ff355b]",
